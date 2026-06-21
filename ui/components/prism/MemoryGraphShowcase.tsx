@@ -190,7 +190,8 @@ function CodeGraph({ activeId }: { activeId: string }) {
   )
 }
 
-export function MemoryGraphShowcase() {
+export function MemoryGraphShowcase({ variant = 'full' }: { variant?: 'full' | 'compact' }) {
+  const compact = variant === 'compact'
   const [activeNode, setActiveNode] = useState('middleware')
   const [activeLog, setActiveLog] = useState(0)
 
@@ -211,18 +212,18 @@ export function MemoryGraphShowcase() {
   }, [])
 
   return (
-    <section className="border-t border-neutral-200/80 py-24">
+    <section className={compact ? 'py-16' : 'border-t border-neutral-200/80 py-24'}>
       <div className="mx-auto max-w-6xl px-6">
         <div className="mb-10 text-center">
           <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-neutral-500">
             Repository Memory
           </p>
           <h2 className="text-3xl font-semibold tracking-tight text-neutral-900 md:text-4xl">
-            Context that compounds — across every model
+            One memory. Every model.
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-[15px] leading-relaxed text-neutral-600">
-            PRISM maps your codebase into a living memory graph. Every session writes to a shared datalog so the
-            next chat — on any provider — starts warm, not from zero.
+          <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-neutral-600">
+            PRISM maps your codebase into a living graph and shared datalog — so the next chat, on any model,
+            starts warm.
           </p>
         </div>
 
@@ -279,16 +280,14 @@ export function MemoryGraphShowcase() {
           </div>
         </div>
 
-        <p className="mx-auto mt-8 max-w-2xl text-center text-[15px] leading-relaxed text-neutral-600">
-          Like a persistent brain for your repository, PRISM memory learns from every agent run — which files matter,
-          which symbols connect, and what changed since your last session. New chats don&apos;t start cold: they inherit
-          the graph index, ledger continuity, and vision context automatically.
-        </p>
-        <p className="mx-auto mt-3 max-w-2xl text-center text-[15px] leading-relaxed text-neutral-600">
-          That warm start is what makes cross-model handoffs work. Switch from Claude to GPT to Gemini without
-          re-explaining your codebase — each model gets the same compiled context, so performance stays high even when
-          providers change.
-        </p>
+        {!compact && (
+          <p className="mx-auto mt-8 max-w-2xl text-center text-[15px] leading-relaxed text-neutral-600">
+            Like a persistent brain for your repository, PRISM memory learns from every agent run — which files matter,
+            which symbols connect, and what changed since your last session. New chats don&apos;t start cold: they inherit
+            the graph index, ledger continuity, and vision context automatically. That warm start is what makes
+            cross-model handoffs work — switch providers without re-explaining your codebase.
+          </p>
+        )}
       </div>
 
       <style>{`
