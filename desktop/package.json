@@ -1,0 +1,19 @@
+{
+  "name": "prism-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "tsc && cross-env ELECTRON_DEV=1 electron .",
+    "build": "tsc",
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^33.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "cross-env": "^7.0.3",
+    "typescript": "^5.5.4"
+  }
+}

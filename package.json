@@ -1,0 +1,24 @@
+{
+  "name": "prism-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PRISM open-source desktop shell and web UI",
+  "main": "desktop/dist/main.js",
+  "workspaces": [
+    "ui",
+    "desktop"
+  ],
+  "scripts": {
+    "dev": "concurrently -k \"npm run dev -w ui\" \"wait-on http://localhost:5173 && npm run dev -w desktop\"",
+    "build": "npm run build -w ui && npm run build -w desktop",
+    "dist": "npm run build && electron-builder --config electron-builder.yml",
+    "dist:publish": "npm run build && electron-builder --config electron-builder.yml --publish always",
+    "type-check": "npm run type-check -w ui",
+    "verify-boundary": "powershell -ExecutionPolicy Bypass -File ../scripts/verify-deploy-boundaries.ps1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "electron-builder": "^25.1.8",
+    "wait-on": "^8.0.1"
+  }
+}

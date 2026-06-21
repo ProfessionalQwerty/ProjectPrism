@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    margin: 0;
+    @apply font-sans;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-neutral-300;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-neutral-400;
+  }
+}
+
+@layer components {
+  .prism-titlebar {
+    -webkit-app-region: drag;
+  }
+
+  .prism-titlebar button,
+  .prism-titlebar a,
+  .prism-titlebar input {
+    -webkit-app-region: no-drag;
+  }
+
+  .workspace-theme {
+    color-scheme: light;
+  }
+
+  .dark .workspace-theme {
+    color-scheme: dark;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    @apply bg-neutral-600;
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    @apply bg-neutral-500;
+  }
+
+  .terminal-cmd {
+    @apply text-violet-600;
+  }
+
+  .terminal-flag {
+    @apply text-sky-600;
+  }
+
+  .terminal-path {
+    @apply text-emerald-600;
+  }
+
+  .terminal-success {
+    @apply text-emerald-500;
+  }
+
+  .terminal-dim {
+    @apply text-neutral-500;
+  }
+}

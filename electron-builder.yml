@@ -1,0 +1,44 @@
+appId: com.prism.desktop
+productName: PRISM
+copyright: Copyright © 2026 PRISM
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - desktop/dist/**/*
+  - ui/dist/**/*
+  - package.json
+
+extraMetadata:
+  main: desktop/dist/main.js
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: PRISM-Setup-x64.${ext}
+
+mac:
+  target:
+    - dmg
+  artifactName: PRISM-x64.${ext}
+  category: public.app-category.developer-tools
+
+linux:
+  target:
+    - AppImage
+  artifactName: PRISM-x64.${ext}
+  category: Development
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+
+publish:
+  provider: github
+  owner: ProfessionalQwerty
+  repo: ProjectRuby
