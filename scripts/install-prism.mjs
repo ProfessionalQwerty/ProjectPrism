@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * PRISM desktop installer — run via:
- *   npx --yes github:ProfessionalQwerty/ProjectRuby
+ *   npx --yes github:ProfessionalQwerty/ProjectPrism
  */
 import { createWriteStream, existsSync, readdirSync, statSync } from 'node:fs'
 import { mkdir, rm, writeFile, readFile, chmod, mkdtemp } from 'node:fs/promises'
@@ -13,7 +13,7 @@ import { promisify } from 'node:util'
 import extractZip from 'extract-zip'
 import * as tar from 'tar'
 
-const DEFAULT_REPO = 'ProfessionalQwerty/ProjectRuby'
+const DEFAULT_REPO = 'ProfessionalQwerty/ProjectPrism'
 
 function detectPlatform() {
   const platform = process.platform
@@ -233,7 +233,7 @@ async function installPrism(options = {}) {
     const marker = join(target, '.prism-install.json')
     await writeFile(
       marker,
-      JSON.stringify({ version: '0.1.4', exePath, installedAt: new Date().toISOString() }, null, 2)
+      JSON.stringify({ version: '0.1.5', exePath, installedAt: new Date().toISOString() }, null, 2)
     )
 
     console.log('')

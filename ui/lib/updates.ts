@@ -19,7 +19,7 @@ export async function checkForAppUpdate(): Promise<AppUpdateInfo> {
     latestVersion: null,
     updateAvailable: false,
     downloadUrl: null,
-    releaseUrl: 'https://github.com/ProfessionalQwerty/ProjectRuby/releases/latest',
+    releaseUrl: 'https://github.com/ProfessionalQwerty/ProjectPrism/releases/latest',
     error: 'Not running in desktop app',
   }
 }

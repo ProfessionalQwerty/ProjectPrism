@@ -1,6 +1,6 @@
 import { app } from 'electron'
 
-const DEFAULT_REPO = 'ProfessionalQwerty/ProjectRuby'
+const DEFAULT_REPO = 'ProfessionalQwerty/ProjectPrism'
 
 export type UpdateCheckResult = {
   currentVersion: string

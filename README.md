@@ -9,9 +9,9 @@ The **intelligence engine** (graph indexing, orchestration, datalog) is propriet
 | Target | This folder | Remote |
 |--------|-------------|--------|
 | **Website** | `prism-app/` root | Vercel |
-| **Open source** | `prism-app/` | GitHub `ProfessionalQwerty/ProjectRuby` |
+| **Open source** | `prism-app/` | GitHub `ProfessionalQwerty/ProjectPrism` |
 | **Desktop installers** | GitHub Releases | Built by `.github/workflows/release.yml` |
-| **npm installer** | `scripts/install-prism.mjs` | via `npx github:ProfessionalQwerty/ProjectRuby` |
+| **npm installer** | `scripts/install-prism.mjs` | via `npx github:ProfessionalQwerty/ProjectPrism` |
 
 Before pushing to GitHub, run:
 
@@ -38,7 +38,7 @@ npm run dev
 Requires Node.js 18+. Downloads PRISM from GitHub Releases and creates a desktop shortcut on Windows, macOS, and Linux.
 
 ```bash
-npx --yes github:ProfessionalQwerty/ProjectRuby
+npx --yes github:ProfessionalQwerty/ProjectPrism
 ```
 
 Launch later from your desktop shortcut, or run the installed PRISM executable directly.

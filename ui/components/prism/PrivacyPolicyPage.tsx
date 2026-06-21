@@ -85,7 +85,7 @@ export function PrivacyPolicyPage({ onBack }: PrivacyPolicyPageProps) {
               </li>
               <li>
                 <strong>GitHub</strong> and <strong>npm</strong> process downloads when you install the desktop app via{' '}
-                <code className="rounded bg-neutral-100 px-1">npx github:ProfessionalQwerty/ProjectRuby</code>.
+                <code className="rounded bg-neutral-100 px-1">npx github:ProfessionalQwerty/ProjectPrism</code>.
               </li>
             </ul>
 

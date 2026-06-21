@@ -1,5 +1,5 @@
 /** Install via npx (no npm registry publish, no direct binary download). */
-export const NPM_INSTALL_COMMAND = 'npx --yes github:ProfessionalQwerty/ProjectRuby'
+export const NPM_INSTALL_COMMAND = 'npx --yes github:ProfessionalQwerty/ProjectPrism'
 
 export type PlatformId = 'windows' | 'mac' | 'linux' | 'unknown'
 

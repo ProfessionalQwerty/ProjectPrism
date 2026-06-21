@@ -5,7 +5,7 @@ PRISM desktop is eligible for [SignPath Foundation](https://signpath.org/) free 
 ## 1. Apply for SignPath Foundation
 
 1. Go to https://signpath.org/ and click **Apply**
-2. Link your GitHub repo: `ProfessionalQwerty/ProjectRuby`
+2. Link your GitHub repo: `ProfessionalQwerty/ProjectPrism`
 3. Describe the project: open-source Electron desktop shell (`prism-app/`)
 4. Wait for approval (SignPath verifies builds come from your repo)
 
@@ -13,14 +13,14 @@ PRISM desktop is eligible for [SignPath Foundation](https://signpath.org/) free 
 
 After approval, in the SignPath portal:
 
-1. Install the [SignPath GitHub App](https://docs.signpath.io/trusted-build-systems/github) on `ProfessionalQwerty/ProjectRuby`
+1. Install the [SignPath GitHub App](https://docs.signpath.io/trusted-build-systems/github) on `ProfessionalQwerty/ProjectPrism`
 2. Create a signing policy (e.g. `release-signing`) for tag builds
 3. Upload a sample `PRISM-Setup-x64.exe` from a release and create artifact configuration (e.g. slug `exe-installer` for a single `.exe`)
 4. Create an API token with **submitter** permission on the project
 
 ## 3. Add GitHub secrets
 
-In **ProjectRuby → Settings → Secrets → Actions**, add:
+In **ProjectPrism → Settings → Secrets → Actions**, add:
 
 | Secret | Value |
 |--------|--------|

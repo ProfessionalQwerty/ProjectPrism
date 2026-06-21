@@ -19,7 +19,7 @@ export type PlatformAsset = {
   installerFilename: string
 }
 
-export const DEFAULT_REPO = 'ProfessionalQwerty/ProjectRuby'
+export const DEFAULT_REPO = 'ProfessionalQwerty/ProjectPrism'
 
 export function detectPlatform(): PlatformAsset {
   const platform = process.platform

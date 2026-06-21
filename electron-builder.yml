@@ -54,4 +54,4 @@ nsis:
 publish:
   provider: github
   owner: ProfessionalQwerty
-  repo: ProjectRuby
+  repo: ProjectPrism

@@ -29,7 +29,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onLoginSuccess, onErro
           </div>
           <div style={styles.navRight}>
             <a
-              href="https://github.com/ProfessionalQwerty/ProjectRuby"
+              href="https://github.com/ProfessionalQwerty/ProjectPrism"
               target="_blank"
               rel="noopener noreferrer"
               style={styles.githubLink}
@@ -179,7 +179,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onLoginSuccess, onErro
               <h3 style={styles.trustCardTitle}>Open Source</h3>
               <p style={styles.trustCardText}>View the source code, fork, contribute, or self-host. No proprietary dependencies or vendor lock-in.</p>
               <a
-                href="https://github.com/ProfessionalQwerty/ProjectRuby"
+                href="https://github.com/ProfessionalQwerty/ProjectPrism"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={styles.trustLink}
@@ -285,7 +285,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onLoginSuccess, onErro
             <button style={styles.ctaPrimary} onClick={() => setShowLogin(true)}>
               Install Ruby
             </button>
-            <a href="https://github.com/ProfessionalQwerty/ProjectRuby" target="_blank" rel="noopener noreferrer" style={styles.ctaSecondary}>
+            <a href="https://github.com/ProfessionalQwerty/ProjectPrism" target="_blank" rel="noopener noreferrer" style={styles.ctaSecondary}>
               View on GitHub →
             </a>
           </div>
@@ -325,7 +325,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onLoginSuccess, onErro
             <h4 style={styles.footerHeading}>Community</h4>
             <ul style={styles.footerLinks}>
               <li>
-                <a href="https://github.com/ProfessionalQwerty/ProjectRuby" target="_blank" rel="noopener noreferrer" style={styles.footerLink}>
+                <a href="https://github.com/ProfessionalQwerty/ProjectPrism" target="_blank" rel="noopener noreferrer" style={styles.footerLink}>
                   GitHub
                 </a>
               </li>
