@@ -2,6 +2,7 @@ import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, shell } from 'e
 import { existsSync } from 'fs'
 import { join } from 'path'
 import { collectProjectFiles } from './collect-files'
+import { checkForUpdates } from './updater'
 
 const isDev = !app.isPackaged && process.env.ELECTRON_DEV === '1'
 
@@ -66,6 +67,29 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   createWindow()
+
+  if (!isDev && app.isPackaged) {
+    void (async () => {
+      await new Promise((r) => setTimeout(r, 8000))
+      const info = await checkForUpdates()
+      if (info.updateAvailable && info.latestVersion) {
+        const win = BrowserWindow.getAllWindows()[0]
+        const { response } = await dialog.showMessageBox(win ?? undefined, {
+          type: 'info',
+          title: 'Update available',
+          message: `PRISM v${info.latestVersion} is available (you have v${info.currentVersion}).`,
+          detail: 'Download the latest installer from GitHub Releases.',
+          buttons: ['Download', 'Later'],
+          defaultId: 0,
+          cancelId: 1,
+        })
+        if (response === 0 && info.downloadUrl) {
+          void shell.openExternal(info.downloadUrl)
+        }
+      }
+    })()
+  }
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
@@ -76,6 +100,8 @@ app.on('window-all-closed', () => {
 })
 
 ipcMain.handle('app:version', () => app.getVersion())
+
+ipcMain.handle('app:checkForUpdates', () => checkForUpdates())
 
 ipcMain.handle('dialog:pickFolder', async () => {
   const result = await dialog.showOpenDialog({

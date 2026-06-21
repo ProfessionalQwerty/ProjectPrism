@@ -6,6 +6,7 @@ import { RightPanel } from './RightPanel'
 import { ConnectProjectModal } from './ConnectProjectModal'
 import { DaemonBanner } from './DaemonBanner'
 import { ChatTabBar, ThemeToggle } from './ChatTabBar'
+import { UpdateCheckButton } from './UpdateCheckButton'
 import { useWorkspaceState } from '../../hooks/useWorkspaceState'
 import { useTheme } from '../../lib/theme'
 
@@ -29,6 +30,7 @@ export function WorkspaceShell() {
             onRemoveAgent={ws.removeAgent}
           />
         </div>
+        <UpdateCheckButton />
         <ThemeToggle dark={dark} onToggle={toggle} />
       </div>
 

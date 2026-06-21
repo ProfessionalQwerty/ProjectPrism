@@ -8,7 +8,7 @@ import { ModelLogo } from '../ui/ModelLogo'
 import { getNpmInstallLabel } from '../../lib/downloads'
 
 interface FeatureTabsProps {
-  onExplore: () => void
+  onFeaturesDetail: () => void
   onCopyInstall: () => void
   installCopied?: boolean
 }
@@ -46,7 +46,7 @@ const tabs = [
   },
 ]
 
-export function FeatureTabs({ onExplore, onCopyInstall, installCopied }: FeatureTabsProps) {
+export function FeatureTabs({ onFeaturesDetail, onCopyInstall, installCopied }: FeatureTabsProps) {
   return (
     <section className="py-24">
       <div className="mx-auto max-w-6xl px-6">
@@ -95,10 +95,10 @@ export function FeatureTabs({ onExplore, onCopyInstall, installCopied }: Feature
                     />
                     <button
                       type="button"
-                      onClick={onExplore}
+                      onClick={onFeaturesDetail}
                       className="rounded-md border border-neutral-300 bg-white px-4 py-2 text-[14px] font-medium text-neutral-700 hover:bg-neutral-50"
                     >
-                      Explore features
+                      Learn more
                     </button>
                   </div>
                 </div>
