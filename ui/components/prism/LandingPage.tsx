@@ -12,8 +12,27 @@ import { ModelLogo } from '../ui/ModelLogo'
 import { PrismBrand } from './PrismBrand'
 import { GITHUB_REPO_URL } from '../../lib/app-shell'
 import { getNpmInstallLabel, copyNpmInstallCommand } from '../../lib/downloads'
+import { cn } from '../../lib/utils'
 
 const GITHUB_APP_URL = GITHUB_REPO_URL
+
+const MODEL_PROVIDERS = ['openai', 'claude-code', 'gemini-cli', 'local-model'] as const
+
+function ModelPills({ className }: { className?: string }) {
+  return (
+    <div className={cn('flex flex-wrap items-center gap-2', className)}>
+      {MODEL_PROVIDERS.map((m) => (
+        <div
+          key={m}
+          className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white/90 px-3 py-1.5 text-[13px] text-neutral-700 shadow-sm"
+        >
+          <ModelLogo provider={m} size={16} />
+          <span className="capitalize">{m.split('-')[0]}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 interface LandingPageProps {
   onOpenDemo: () => void
@@ -68,32 +87,28 @@ export function LandingPage({ onOpenDemo, onFeaturesDetail, onPrivacy }: Landing
         <p className="mb-5 text-[12px] font-semibold uppercase tracking-[0.25em] text-neutral-500">
           Agentic Development Environment
         </p>
-        <h1 className="mx-auto max-w-3xl text-4xl font-semibold tracking-tight text-neutral-900 md:text-6xl md:leading-[1.08]">
+        <h1 className="mx-auto max-w-4xl text-4xl font-semibold tracking-tight text-neutral-900 md:text-6xl md:leading-[1.08]">
           Your codebase doesn&apos;t reset when your model does.
         </h1>
-        <p className="mx-auto mt-6 max-w-xl text-[17px] leading-relaxed text-neutral-600">
+        <p className="mx-auto mt-6 max-w-2xl text-[17px] leading-relaxed text-neutral-600">
           PRISM is a native desktop workspace for multi-model development. The intelligence engine runs
           in the cloud — the app shell is open source on GitHub.
         </p>
 
-        <div className="mt-10 flex flex-col items-center gap-4">
-          <InstallCTA copied={copied} onCopy={() => void copy()} />
-          <Button variant="landingOutline" size="lg" onClick={onOpenDemo} className="gap-2 font-medium">
-            <Play className="h-4 w-4" />
-            See PRISM in action
-          </Button>
-        </div>
-
-        <div className="mx-auto mt-14 flex max-w-lg flex-wrap items-center justify-center gap-3">
-          {['openai', 'claude-code', 'gemini-cli', 'local-model'].map((m) => (
-            <div
-              key={m}
-              className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white/90 px-4 py-2 text-[13px] text-neutral-700 shadow-sm"
-            >
-              <ModelLogo provider={m} size={18} />
-              <span className="capitalize">{m.split('-')[0]}</span>
-            </div>
-          ))}
+        <div className="mx-auto mt-10 w-full max-w-6xl rounded-2xl border border-neutral-200/80 bg-white/75 p-5 text-left shadow-sm backdrop-blur-sm sm:p-6 lg:p-8">
+          <InstallCTA
+            layout="horizontal"
+            centered={false}
+            copied={copied}
+            onCopy={() => void copy()}
+          />
+          <div className="mt-5 flex flex-col gap-4 border-t border-neutral-200/80 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <Button variant="landingOutline" size="lg" onClick={onOpenDemo} className="shrink-0 gap-2 font-medium">
+              <Play className="h-4 w-4" />
+              See PRISM in action
+            </Button>
+            <ModelPills className="sm:justify-end" />
+          </div>
         </div>
       </section>
 
@@ -114,7 +129,14 @@ export function LandingPage({ onOpenDemo, onFeaturesDetail, onPrivacy }: Landing
             <p className="mt-3 text-[15px] leading-relaxed text-neutral-600">
               Install via npm or direct download for Windows, macOS, and Linux.
             </p>
-            <InstallCTA className="mt-6" showAllPlatforms copied={copied} onCopy={() => void copy()} />
+            <InstallCTA
+              className="mt-6"
+              layout="horizontal"
+              centered={false}
+              showAllPlatforms
+              copied={copied}
+              onCopy={() => void copy()}
+            />
           </div>
 
           <div className="rounded-2xl border border-neutral-200/80 bg-white/70 p-8 backdrop-blur-sm">
@@ -134,13 +156,23 @@ export function LandingPage({ onOpenDemo, onFeaturesDetail, onPrivacy }: Landing
       </section>
 
       <section className="border-t border-neutral-200/80 py-20">
-        <div className="mx-auto max-w-xl px-6 text-center">
-          <h2 className="text-3xl font-semibold text-neutral-900">Ready to build with PRISM?</h2>
-          <InstallCTA className="mx-auto mt-8" showAllPlatforms copied={copied} onCopy={() => void copy()} />
-          <Button variant="landingOutline" size="lg" onClick={onOpenDemo} className="mt-6 gap-2 font-medium">
-            <Play className="h-4 w-4" />
-            Watch the demo
-          </Button>
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="rounded-2xl border border-neutral-200/80 bg-white/75 p-6 shadow-sm backdrop-blur-sm sm:p-8">
+            <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <h2 className="text-2xl font-semibold text-neutral-900 sm:text-3xl">Ready to build with PRISM?</h2>
+              <Button variant="landingOutline" size="lg" onClick={onOpenDemo} className="shrink-0 gap-2 font-medium">
+                <Play className="h-4 w-4" />
+                Watch the demo
+              </Button>
+            </div>
+            <InstallCTA
+              layout="horizontal"
+              centered={false}
+              showAllPlatforms
+              copied={copied}
+              onCopy={() => void copy()}
+            />
+          </div>
         </div>
       </section>
 
