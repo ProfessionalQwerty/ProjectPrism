@@ -5,6 +5,7 @@ ui/dist/
 desktop/dist/
 dist/
 release/
+installer/dist/
 .env
 .env.local
 .env.production

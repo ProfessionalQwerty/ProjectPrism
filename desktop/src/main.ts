@@ -1,16 +1,39 @@
-import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, shell } from 'electron'
+import { existsSync } from 'fs'
 import { join } from 'path'
 import { collectProjectFiles } from './collect-files'
 
-const isDev = process.env.ELECTRON_DEV === '1'
+const isDev = !app.isPackaged && process.env.ELECTRON_DEV === '1'
+
+function resolveAppIcon(): Electron.NativeImage | undefined {
+  const candidates = [
+    join(app.getAppPath(), 'build/icon.png'),
+    join(__dirname, '../../build/icon.png'),
+  ]
+  for (const iconPath of candidates) {
+    if (existsSync(iconPath)) {
+      return nativeImage.createFromPath(iconPath)
+    }
+  }
+  return undefined
+}
+
+function resolveIndexHtml(): string {
+  return join(app.getAppPath(), 'ui/dist/index.html')
+}
 
 function createWindow(): void {
+  Menu.setApplicationMenu(null)
+
+  const icon = resolveAppIcon()
   const win = new BrowserWindow({
     width: 1440,
     height: 900,
     minWidth: 1024,
     minHeight: 640,
     title: 'PRISM',
+    autoHideMenuBar: true,
+    ...(icon ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -19,11 +42,24 @@ function createWindow(): void {
     },
   })
 
+  win.setMenuBarVisibility(false)
+
+  win.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+    console.error('[PRISM] did-fail-load', { errorCode, errorDescription, validatedURL })
+  })
+
+  win.webContents.on('console-message', (_event, _level, message) => {
+    if (message.includes('Error') || message.includes('error')) {
+      console.log('[PRISM renderer]', message)
+    }
+  })
+
   if (isDev) {
     void win.loadURL('http://localhost:5173')
     win.webContents.openDevTools({ mode: 'detach' })
   } else {
-    const indexPath = join(__dirname, '../../ui/dist/index.html')
+    const indexPath = resolveIndexHtml()
+    console.log('[PRISM] Loading index from', indexPath)
     void win.loadFile(indexPath)
   }
 }

@@ -9,14 +9,19 @@ directories:
 files:
   - desktop/dist/**/*
   - ui/dist/**/*
+  - build/**/*
   - package.json
 
 extraMetadata:
   main: desktop/dist/main.js
 
 win:
+  signAndEditExecutable: false
   target:
     - target: nsis
+      arch:
+        - x64
+    - target: zip
       arch:
         - x64
   artifactName: PRISM-Setup-x64.${ext}
@@ -24,13 +29,15 @@ win:
 mac:
   target:
     - dmg
-  artifactName: PRISM-x64.${ext}
+    - zip
+  artifactName: PRISM-mac-x64.${ext}
   category: public.app-category.developer-tools
 
 linux:
   target:
     - AppImage
-  artifactName: PRISM-x64.${ext}
+    - tar.gz
+  artifactName: PRISM-linux-x64.${ext}
   category: Development
 
 nsis:

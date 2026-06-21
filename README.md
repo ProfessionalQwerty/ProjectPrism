@@ -11,6 +11,7 @@ The **intelligence engine** (graph indexing, orchestration, datalog) is propriet
 | **Website** | `prism-app/` root | Vercel |
 | **Open source** | `prism-app/` | GitHub `ProfessionalQwerty/ProjectRuby` |
 | **Desktop installers** | GitHub Releases | Built by `.github/workflows/release.yml` |
+| **npm installer** | `installer/` (`@prism/install`) | npm registry |
 
 Before pushing to GitHub, run:
 
@@ -32,9 +33,41 @@ npm run dev
 - Web UI: http://localhost:5173
 - Electron opens automatically after Vite is ready
 
+## Install desktop app (recommended)
+
+Requires Node.js 18+. Creates a desktop shortcut on Windows, macOS, and Linux:
+
+```bash
+npx @prism/install
+```
+
+Launch later:
+
+```bash
+npx @prism/install --launch
+# or, if installed globally:
+prism
+```
+
+**First launch trust prompts**
+
+- **Windows SmartScreen:** More info → Run anyway
+- **macOS Gatekeeper:** Right-click the app → Open
+
+## Direct installer download
+
+| Platform | File |
+|----------|------|
+| Windows | `PRISM-Setup-x64.exe` |
+| macOS | `PRISM-mac-x64.dmg` |
+| Linux | `PRISM-linux-x64.AppImage` |
+
+Portable archives for the npm installer: `PRISM-Setup-x64.zip`, `PRISM-mac-x64.zip`, `PRISM-linux-x64.tar.gz`.
+
 ## Build desktop installer locally
 
 ```powershell
+npm run generate-icons   # once, from prism_logo_cut_stone_final.png
 npm run dist
 ```
 
@@ -43,11 +76,18 @@ Installers output to `prism-app/release/`.
 ## Release (CI)
 
 ```powershell
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.1.1
+git push origin v0.1.1
 ```
 
-GitHub Actions builds `PRISM-Setup-x64.exe`, `PRISM-x64.dmg`, and `PRISM-x64.AppImage`.
+GitHub Actions builds Windows, macOS, and Linux installers plus portable zip/tar archives.
+
+Publish npm installer after release:
+
+```powershell
+npm run build -w installer
+npm publish -w installer --access public
+```
 
 ## Environment variables (UI)
 
@@ -63,6 +103,8 @@ GitHub Actions builds `PRISM-Setup-x64.exe`, `PRISM-x64.dmg`, and `PRISM-x64.App
 prism-app/
 ├── ui/           React workspace + marketing site
 ├── desktop/      Electron main/preload
+├── installer/    @prism/install npm package
+├── build/        App icons for electron-builder
 └── release/      Built installers (gitignored)
 ```
 

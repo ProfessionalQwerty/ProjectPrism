@@ -36,8 +36,9 @@ jobs:
         run: npm ci
 
       - name: Build UI and desktop
-        run: npm run build
+        run: npm run build:electron
         env:
+          VITE_ELECTRON: '1'
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_PRISM_CLIENT_KEY: ${{ secrets.VITE_PRISM_CLIENT_KEY }}
           VITE_DOWNLOAD_BASE_URL: ${{ secrets.VITE_DOWNLOAD_BASE_URL }}
@@ -46,6 +47,7 @@ jobs:
         run: npm run dist
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
