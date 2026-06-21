@@ -1,34 +1,29 @@
 import React, { useCallback, useState } from 'react'
-import { Check, Copy, Download } from 'lucide-react'
-import { Button } from '../ui/button'
+import { Check, Copy } from 'lucide-react'
 import { ButtonColorful } from '../ui/button-colorful'
 import { cn } from '../../lib/utils'
 import {
-  ALL_PLATFORM_DOWNLOADS,
   NPM_INSTALL_COMMAND,
+  SUPPORTED_PLATFORMS,
   copyNpmInstallCommand,
-  detectPlatformAsset,
-  downloadInstaller,
-  getDownloadButtonLabel,
+  getFirstLaunchNote,
   getInstallHint,
   getNpmInstallLabel,
-  getWindowsInstallWarning,
 } from '../../lib/downloads'
 
 interface InstallCTAProps {
   className?: string
+  /** kept for API compatibility; no longer toggles download buttons */
   showAllPlatforms?: boolean
   copied?: boolean
   onCopy?: () => void
   centered?: boolean
-  /** wide = full-width npm + button row (for hero/footer); compact = stacked for narrow cards */
   layout?: 'stacked' | 'wide' | 'compact'
   compactNotes?: boolean
 }
 
 export function InstallCTA({
   className = '',
-  showAllPlatforms = false,
   copied,
   onCopy,
   centered = true,
@@ -38,6 +33,7 @@ export function InstallCTA({
   const [localCopied, setLocalCopied] = useState(false)
   const isCopied = copied ?? localCopied
   const isWide = layout === 'wide'
+  const alignStart = !centered || layout === 'compact'
 
   const copy = useCallback(async () => {
     if (onCopy) {
@@ -52,8 +48,6 @@ export function InstallCTA({
   }, [onCopy])
 
   const npmLabel = isCopied ? 'Copied!' : getNpmInstallLabel()
-  const primary = detectPlatformAsset()
-  const alignStart = !centered || layout === 'compact'
 
   const npmBar = (
     <button
@@ -64,6 +58,7 @@ export function InstallCTA({
         !isWide && !alignStart && 'max-w-md'
       )}
     >
+      <span className="shrink-0 select-none text-neutral-500">$</span>
       <span className="min-w-0 flex-1 truncate">{NPM_INSTALL_COMMAND}</span>
       {isCopied ? (
         <Check className="h-4 w-4 shrink-0 text-emerald-400" aria-hidden />
@@ -73,33 +68,16 @@ export function InstallCTA({
     </button>
   )
 
-  const actionButtons = (
-    <div className={cn('flex flex-wrap gap-2', alignStart ? 'justify-start' : 'justify-center')}>
+  const actions = (
+    <div className={cn('flex flex-wrap items-center gap-3', alignStart ? 'justify-start' : 'justify-center')}>
       <ButtonColorful label={npmLabel} onClick={() => void copy()} className="h-10 shrink-0 px-5 text-[13px]" />
-      {!showAllPlatforms ? (
-        <Button
-          variant="landingOutline"
-          size="default"
-          onClick={() => void downloadInstaller()}
-          className="h-10 shrink-0"
-        >
-          <Download className="mr-2 h-4 w-4" />
-          {getDownloadButtonLabel()}
-        </Button>
-      ) : (
-        ALL_PLATFORM_DOWNLOADS.map((p) => (
-          <Button
-            key={p.id}
-            variant="landingOutline"
-            size="default"
-            className="h-10 shrink-0 whitespace-nowrap px-4"
-            onClick={() => void downloadInstaller(p.filename)}
-          >
-            <Download className="mr-1.5 h-4 w-4 shrink-0" />
+      <div className="flex flex-wrap items-center gap-1.5 text-[13px] font-medium text-neutral-500">
+        {SUPPORTED_PLATFORMS.map((p) => (
+          <span key={p.id} className="rounded-full border border-neutral-200 bg-white px-2.5 py-1">
             {p.label}
-          </Button>
-        ))
-      )}
+          </span>
+        ))}
+      </div>
     </div>
   )
 
@@ -111,16 +89,7 @@ export function InstallCTA({
       )}
     >
       <p>{getInstallHint()}</p>
-      {(showAllPlatforms || primary.id === 'windows') && (
-        <p className="text-amber-800/90">{getWindowsInstallWarning()}</p>
-      )}
-      <p className="text-neutral-400">
-        Windows installers are code-signed through the{' '}
-        <a href="https://signpath.org/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-neutral-600">
-          SignPath Foundation
-        </a>{' '}
-        when configured in CI.
-      </p>
+      <p className="text-amber-800/90">{getFirstLaunchNote()}</p>
     </div>
   )
 
@@ -133,7 +102,7 @@ export function InstallCTA({
       )}
     >
       {npmBar}
-      {actionButtons}
+      {actions}
       {notes && <div className="border-t border-neutral-200/80 pt-3">{notes}</div>}
     </div>
   )

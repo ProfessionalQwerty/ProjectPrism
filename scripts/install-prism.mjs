@@ -68,25 +68,24 @@ async function fetchLatestAssets(repo = DEFAULT_REPO) {
   return data.assets || []
 }
 
+// Strict per-platform matchers — must NEVER fall back to another OS's archive.
+const PLATFORM_MATCHERS = {
+  windows: (n) => n.endsWith('.zip') && /(win|setup)/i.test(n) && !/(mac|osx|darwin|linux)/i.test(n),
+  mac: (n) => n.endsWith('.zip') && /(mac|osx|darwin)/i.test(n),
+  linux: (n) => /\.(tar\.gz|tgz|appimage)$/i.test(n) && /linux/i.test(n),
+}
+
 function pickPortableAsset(assets, platform) {
   const exact = assets.find((a) => a.name === platform.portableFilename)
   if (exact) return exact
 
-  if (platform.id === 'windows') {
-    const zip = assets.find((a) => a.name.endsWith('.zip') && a.name.includes('PRISM'))
-    if (zip) return zip
-  }
-  if (platform.id === 'mac') {
-    const zip = assets.find((a) => a.name.endsWith('.zip') && a.name.includes('PRISM'))
-    if (zip) return zip
-  }
-  if (platform.id === 'linux') {
-    const tarGz = assets.find((a) => a.name.endsWith('.tar.gz') && a.name.includes('PRISM'))
-    if (tarGz) return tarGz
-  }
+  const matcher = PLATFORM_MATCHERS[platform.id]
+  const match = matcher && assets.find((a) => matcher(a.name))
+  if (match) return match
 
   throw new Error(
-    `No portable asset found for ${platform.label}. Expected ${platform.portableFilename} in latest GitHub release.`
+    `No ${platform.label} package found in the latest release (expected ${platform.portableFilename}). ` +
+      `Available: ${assets.map((a) => a.name).join(', ') || 'none'}`
   )
 }
 
@@ -223,6 +222,8 @@ async function installPrism(options = {}) {
   try {
     await downloadFile(asset.browser_download_url, archivePath)
     const target = installDir()
+    // Clear any partial/previous install (e.g. a failed run) so extraction is clean.
+    await rm(target, { recursive: true, force: true }).catch(() => {})
     console.log(`Extracting to ${target}...`)
     await extractArchive(archivePath, target)
 
@@ -232,7 +233,7 @@ async function installPrism(options = {}) {
     const marker = join(target, '.prism-install.json')
     await writeFile(
       marker,
-      JSON.stringify({ version: '0.1.3', exePath, installedAt: new Date().toISOString() }, null, 2)
+      JSON.stringify({ version: '0.1.4', exePath, installedAt: new Date().toISOString() }, null, 2)
     )
 
     console.log('')
