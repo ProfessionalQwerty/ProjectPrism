@@ -45,7 +45,7 @@ const App: React.FC = () => {
     default:
       return (
         <LandingPage
-          onInstall={() => downloadInstaller()}
+          onInstall={() => void downloadInstaller()}
           onOpenWorkspace={() => goTo('workspace')}
         />
       )
