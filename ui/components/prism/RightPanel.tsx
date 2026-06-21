@@ -75,17 +75,19 @@ export function RightPanel({
                       : 'border-neutral-200'
                   )}
                 >
-                  <div className="font-mono text-[11px] text-neutral-400">{formatTime(entry.timestamp)}</div>
-                  <div className="mt-1 text-[13px] font-medium leading-snug text-neutral-800">{entry.summary}</div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2">
+                      {entry.agentId && <ModelLogo provider={entry.agentId} size={14} />}
+                      <span className="truncate text-[12px] font-medium text-neutral-800">{entry.agent}</span>
+                    </div>
+                    <span className="shrink-0 font-mono text-[10px] text-neutral-400">{formatTime(entry.timestamp)}</span>
+                  </div>
+                  <div className="mt-1.5 text-[13px] font-medium leading-snug text-neutral-800">{entry.summary}</div>
                   {entry.filesModified && entry.filesModified.length > 0 && (
-                    <div className="mt-1.5 font-mono text-[11px] text-violet-700">
+                    <div className="mt-1.5 text-[11px] text-blue-600">
                       {entry.filesModified.join(', ')}
                     </div>
                   )}
-                  <div className="mt-1 flex items-center gap-1.5 text-[11px] text-neutral-500">
-                    {entry.agentId && <ModelLogo provider={entry.agentId} size={12} />}
-                    {entry.agent}
-                  </div>
                 </div>
               ))}
             </div>
@@ -127,8 +129,11 @@ export function RightPanel({
                         : 'border-neutral-200 bg-white hover:border-neutral-300 hover:bg-neutral-50'
                     )}
                   >
-                    <div className="truncate text-[13px] font-medium text-neutral-800">
-                      {session.query || 'Untitled session'}
+                    <div className="flex items-center gap-2">
+                      {activeAgentId && <ModelLogo provider={activeAgentId} size={14} />}
+                      <span className="truncate text-[13px] font-medium text-neutral-800">
+                        {session.query || 'Untitled session'}
+                      </span>
                     </div>
                     <div className="mt-1 flex items-center justify-between text-[11px] text-neutral-500">
                       <span>{formatTime(session.timestamp)}</span>
