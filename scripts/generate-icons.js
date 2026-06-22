@@ -14,6 +14,7 @@ const buildDir = join(root, 'build')
 const publicDir = join(root, 'ui', 'public')
 
 const SOURCE_CANDIDATES = [
+  join(root, 'assets', 'prism_logo_cut_stone_final.png'),
   join(root, '..', 'prism_logo_cut_stone_final.png'),
   join(publicDir, 'prism-logo.png'),
   join(publicDir, 'prism-logo.svg'),
