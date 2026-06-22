@@ -8,10 +8,12 @@ import { DaemonBanner } from './DaemonBanner'
 import { ChatTabBar, ThemeToggle } from './ChatTabBar'
 import { UpdateCheckButton } from './UpdateCheckButton'
 import { useWorkspaceState } from '../../hooks/useWorkspaceState'
+import { useConnections } from '../../hooks/useConnections'
 import { useTheme } from '../../lib/theme'
 
 export function WorkspaceShell() {
   const ws = useWorkspaceState()
+  const connections = useConnections(ws.apiOnline)
   const { dark, toggle } = useTheme()
   const [connectOpen, setConnectOpen] = useState(false)
 
@@ -76,6 +78,7 @@ export function WorkspaceShell() {
           activeSessionId={ws.activeSessionId}
           onSelectSession={(id) => void ws.loadSession(id)}
           onNewChat={ws.startNewChat}
+          connections={connections}
         />
       </div>
 

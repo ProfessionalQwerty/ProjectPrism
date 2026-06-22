@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
-import { MessageSquare, Plus, ScrollText } from 'lucide-react'
+import { Link2, MessageSquare, Plus, ScrollText } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { ModelLogo } from '../ui/ModelLogo'
 import { getCatalogEntry } from '../../lib/models'
 import type { AgentSession, LedgerEntry } from '../../hooks/useWorkspaceState'
+import { ConnectionsPanel } from './ConnectionsPanel'
+import type { useConnections } from '../../hooks/useConnections'
 
-type PanelTab = 'datalog' | 'sessions'
+type PanelTab = 'datalog' | 'sessions' | 'connections'
 
 interface RightPanelProps {
   apiOnline: boolean
@@ -15,6 +17,7 @@ interface RightPanelProps {
   activeSessionId: string | null
   onSelectSession: (sessionId: string) => void
   onNewChat: () => void
+  connections: ReturnType<typeof useConnections>
 }
 
 function formatTime(iso: string): string {
@@ -38,6 +41,7 @@ export function RightPanel({
   activeSessionId,
   onSelectSession,
   onNewChat,
+  connections,
 }: RightPanelProps) {
   const [tab, setTab] = useState<PanelTab>('sessions')
 
@@ -49,6 +53,7 @@ export function RightPanel({
         <div className="flex gap-1">
           <TabBtn active={tab === 'datalog'} onClick={() => setTab('datalog')} icon={<ScrollText className="h-3.5 w-3.5" />} label="Datalog" />
           <TabBtn active={tab === 'sessions'} onClick={() => setTab('sessions')} icon={<MessageSquare className="h-3.5 w-3.5" />} label="Sessions" />
+          <TabBtn active={tab === 'connections'} onClick={() => setTab('connections')} icon={<Link2 className="h-3.5 w-3.5" />} label="Connections" />
         </div>
         <span className="flex items-center gap-1.5 text-[12px] text-neutral-500 dark:text-neutral-400">
           <span className={cn('h-2 w-2 rounded-full', apiOnline ? 'bg-emerald-500' : 'bg-amber-500')} />
@@ -93,6 +98,8 @@ export function RightPanel({
             </div>
           )}
         </div>
+      ) : tab === 'connections' ? (
+        <ConnectionsPanel apiOnline={apiOnline} connections={connections} />
       ) : (
         <>
           <div className="flex items-center justify-between border-b border-neutral-300/60 px-3 py-2">

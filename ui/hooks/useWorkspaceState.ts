@@ -186,10 +186,9 @@ export function useWorkspaceState() {
     try {
       const res = await apiClient.get<{ success: boolean; agents: AgentInfo[] }>('/api/agents/list')
       setRegisteredAgents(res.agents)
-      setApiOnline(true)
       return res.agents
     } catch {
-      setApiOnline(false)
+      setRegisteredAgents([])
       return []
     }
   }, [])
@@ -208,7 +207,6 @@ export function useWorkspaceState() {
       setActiveProject(active)
       return { projects: res.projects, active }
     } catch {
-      setApiOnline(false)
       return { projects: [], active: null as Project | null }
     }
   }, [])
@@ -240,7 +238,7 @@ export function useWorkspaceState() {
       }
       setApiOnline(true)
     } catch {
-      setApiOnline(false)
+      // Project open failed — engine may still be online
     }
   }, [refreshProjects, loadTabsForAgent])
 
@@ -322,7 +320,7 @@ export function useWorkspaceState() {
       setLedgerEntries(mapLedgerEntries(ledgerRes.entries || []))
       setApiOnline(true)
     } catch {
-      setApiOnline(false)
+      // Engine is reachable; workspace data may be empty until a project is connected.
     }
   }, [])
 
@@ -339,10 +337,8 @@ export function useWorkspaceState() {
             typeof s.timestamp === 'string' ? s.timestamp : new Date(s.timestamp).toISOString(),
         }))
       )
-      setApiOnline(true)
     } catch {
       setAgentSessions([])
-      setApiOnline(false)
     }
   }, [])
 
@@ -371,9 +367,8 @@ export function useWorkspaceState() {
         setMessages(loaded)
         setSessionId(sid)
         setActiveSessionId(sid)
-        setApiOnline(true)
       } catch {
-        setApiOnline(false)
+        // Session load failed — keep engine online
       }
     },
     [activeAgentId, activeProjectId, flushActiveTab]
@@ -463,7 +458,7 @@ export function useWorkspaceState() {
         void loadAgentSessions(firstModel)
       }
     } catch {
-      setApiOnline(false)
+      // Bootstrap data failed — health check above already set engine status
     }
   }, [loadAgentSessions, loadTabsForAgent, openProject, refreshAgents, refreshProjects, refreshWorkspaceData])
 

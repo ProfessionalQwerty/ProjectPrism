@@ -8,7 +8,9 @@ import {
   History,
   Play,
   Repeat,
+  Rocket,
   Terminal,
+  Globe,
   Zap,
 } from 'lucide-react'
 import { GitHubIcon } from '../ui/GitHubIcon'
@@ -49,10 +51,12 @@ const PILLARS = [
 const CAPABILITIES = [
   { icon: Brain, label: 'Cross-session memory' },
   { icon: GitBranch, label: 'Multi-agent pipelines' },
+  { icon: Rocket, label: 'One-click deploy' },
   { icon: FileLock2, label: 'File-lock safety' },
   { icon: Zap, label: '30–50% fewer tokens' },
   { icon: History, label: 'Per-model history' },
   { icon: Terminal, label: '/catchup sync' },
+  { icon: Globe, label: 'Local preview' },
 ]
 
 function ModelPills({ className }: { className?: string }) {
@@ -170,6 +174,38 @@ export function LandingPage({ onOpenDemo, onFeaturesDetail, onPrivacy }: Landing
 
       {/* VISUAL PROOF — compact memory graph */}
       <MemoryGraphShowcase variant="compact" />
+
+      <section className="mx-auto max-w-6xl px-6 pb-12">
+        <div className="rounded-2xl border border-violet-200/80 bg-gradient-to-br from-violet-50/80 to-white p-8 backdrop-blur-sm">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-xl">
+              <p className="text-sm font-bold uppercase tracking-[0.28em] text-violet-600">Build → ship</p>
+              <h2 className="mt-3 text-2xl font-semibold text-neutral-900 sm:text-3xl">
+                Idea to live URL without leaving PRISM
+              </h2>
+              <p className="mt-3 text-[15px] leading-relaxed text-neutral-600">
+                Connect GitHub and Vercel once. Preview locally inside the app. Hit Deploy — PRISM commits,
+                pushes, and shows you the live link when Vercel finishes. No terminal. No git commands. If
+                something breaks, your agents already have the project context to fix it.
+              </p>
+            </div>
+            <ol className="space-y-3 text-[14px] text-neutral-700">
+              {[
+                'Connect GitHub + Vercel in the Connections tab',
+                'Build and preview locally in PRISM',
+                'Deploy — PRISM pushes and returns your live URL',
+              ].map((step, i) => (
+                <li key={step} className="flex items-start gap-3 rounded-xl border border-violet-100 bg-white/80 px-4 py-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-600 text-[12px] font-bold text-white">
+                    {i + 1}
+                  </span>
+                  {step}
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      </section>
 
       {/* CAPABILITY CHIPS — scannable, no paragraphs */}
       <section className="mx-auto max-w-6xl px-6 pb-16">

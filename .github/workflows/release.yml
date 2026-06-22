@@ -39,6 +39,24 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
+      - name: Sync package version from release tag
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          export VERSION
+          echo "Setting workspace version to ${VERSION}"
+          node -e "
+            const fs = require('fs');
+            const v = process.env.VERSION;
+            for (const p of ['package.json', 'desktop/package.json']) {
+              const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+              j.version = v;
+              fs.writeFileSync(p, JSON.stringify(j, null, 2) + '\n');
+            }
+          "
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+
       - name: Install dependencies
         run: npm ci
 
