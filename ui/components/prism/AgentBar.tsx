@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Minus, Plus, Square, X } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { ModelLogo } from '../ui/ModelLogo'
 import { PrismGlyph } from './PrismGlyph'
@@ -101,7 +101,7 @@ export function AgentBar({
     <div
       ref={menuRef}
       style={{ top: menuPos.top, left: menuPos.left }}
-      className="fixed z-[9999] w-80 overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-xl"
+      className="fixed z-[9999] w-80 overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-xl dark:border-neutral-700 dark:bg-neutral-900"
     >
       {!adding ? (
         <>
@@ -194,15 +194,19 @@ export function AgentBar({
   ) : null
 
   return (
-    <header className="prism-titlebar flex h-11 shrink-0 items-center border-b border-neutral-300/80 bg-[#ececec] select-none">
-      <div className="flex h-full items-center gap-3 border-r border-neutral-300/80 px-4">
+    <div className="prism-titlebar flex h-full min-w-0 flex-1 items-stretch select-none">
+      <div className="flex h-full items-center gap-3 border-r border-neutral-300/80 px-4 dark:border-neutral-700">
         <PrismGlyph className="h-7 w-7 shrink-0" />
-        <span className="text-[15px] font-semibold tracking-wide text-neutral-800">PRISM</span>
+        <span className="text-[15px] font-semibold tracking-wide text-neutral-800 dark:text-neutral-100">
+          PRISM
+        </span>
       </div>
 
       <div className="flex h-full min-w-0 flex-1 items-stretch overflow-x-auto overflow-y-visible px-1">
         {projectModels.length === 0 && (
-          <span className="flex items-center px-3 text-[13px] text-neutral-500">No models on this project yet</span>
+          <span className="flex items-center px-3 text-[13px] text-neutral-500 dark:text-neutral-400">
+            No models on this project yet
+          </span>
         )}
         {projectModels.map((agentId) => (
           <div key={agentId} className="group relative flex shrink-0 items-stretch">
@@ -210,10 +214,10 @@ export function AgentBar({
               type="button"
               onClick={() => onSelectAgent(agentId)}
               className={cn(
-                'flex items-center gap-2 border-r border-neutral-300/60 px-4 text-[14px] transition-colors',
+                'flex items-center gap-2 border-r border-neutral-300/60 px-4 text-[14px] transition-colors dark:border-neutral-700',
                 activeAgentId === agentId
-                  ? 'bg-white font-medium text-neutral-900 shadow-sm'
-                  : 'text-neutral-600 hover:bg-neutral-200/60'
+                  ? 'bg-white font-medium text-neutral-900 shadow-sm dark:bg-neutral-800 dark:text-neutral-100'
+                  : 'text-neutral-600 hover:bg-neutral-200/60 dark:text-neutral-400 dark:hover:bg-neutral-800/60'
               )}
             >
               <ModelLogo provider={agentId} size={18} />
@@ -239,7 +243,7 @@ export function AgentBar({
               setAdding(null)
               setError(null)
             }}
-            className="flex h-full items-center px-3 text-neutral-500 hover:bg-neutral-200/60 hover:text-neutral-800"
+            className="flex h-full items-center px-3 text-neutral-500 hover:bg-neutral-200/60 hover:text-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
             title="Add AI model"
             aria-expanded={menuOpen}
             aria-haspopup="menu"
@@ -250,26 +254,6 @@ export function AgentBar({
       </div>
 
       {menuPanel && createPortal(menuPanel, document.body)}
-
-      <div className="ml-auto flex shrink-0">
-        <WindowBtn icon={<Minus className="h-3.5 w-3.5" />} />
-        <WindowBtn icon={<Square className="h-3 w-3" />} />
-        <WindowBtn icon={<X className="h-3.5 w-3.5" />} danger />
-      </div>
-    </header>
-  )
-}
-
-function WindowBtn({ icon, danger }: { icon: React.ReactNode; danger?: boolean }) {
-  return (
-    <button
-      type="button"
-      className={cn(
-        'flex h-11 w-11 items-center justify-center text-neutral-500',
-        danger ? 'hover:bg-red-500 hover:text-white' : 'hover:bg-neutral-300/80'
-      )}
-    >
-      {icon}
-    </button>
+    </div>
   )
 }

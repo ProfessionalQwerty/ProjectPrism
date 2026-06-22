@@ -42,7 +42,15 @@ export const apiClient = {
     })
 
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status} ${response.statusText}`)
+      let detail = `${response.status} ${response.statusText}`
+      try {
+        const body = (await response.json()) as { error?: string; message?: string }
+        if (body.error) detail = body.error
+        else if (body.message) detail = body.message
+      } catch {
+        // ignore non-JSON bodies
+      }
+      throw new Error(detail)
     }
 
     return response.json()

@@ -21,9 +21,8 @@ export function WorkspaceShell() {
     <div className="workspace-theme flex h-screen flex-col overflow-hidden bg-[#ececec] text-[16px] dark:bg-neutral-950 dark:text-neutral-100">
       {!ws.apiOnline && <DaemonBanner onRetry={() => void ws.retryConnection()} />}
 
-      <div className="flex items-center gap-2 border-b border-neutral-300/80 bg-[#f3f3f3] pr-3 dark:border-neutral-700 dark:bg-neutral-900">
-        <div className="min-w-0 flex-1">
-          <AgentBar
+      <div className="prism-titlebar flex h-11 shrink-0 items-center border-b border-neutral-300/80 bg-[#f3f3f3] pr-3 dark:border-neutral-700 dark:bg-neutral-900">
+        <AgentBar
             apiOnline={ws.apiOnline}
             activeAgentId={ws.activeAgentId}
             projectModels={ws.projectModels}
@@ -31,7 +30,6 @@ export function WorkspaceShell() {
             onAddAgent={ws.addAgent}
             onRemoveAgent={ws.removeAgent}
           />
-        </div>
         <UpdateCheckButton />
         <ThemeToggle dark={dark} onToggle={toggle} />
       </div>

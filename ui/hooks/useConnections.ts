@@ -18,6 +18,12 @@ export interface ConnectionsState {
   engine: ConnectionInfo
 }
 
+export interface GitHubOAuthInfo {
+  ready: boolean
+  redirectUrl: string | null
+  hint: string | null
+}
+
 export interface GitStatus {
   branch: string
   clean: boolean
@@ -44,23 +50,46 @@ export function useConnections(apiOnline: boolean) {
   const [deployLog, setDeployLog] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [githubOAuth, setGithubOAuth] = useState<GitHubOAuthInfo | null>(null)
+  const [needsProject, setNeedsProject] = useState(false)
 
   const refresh = useCallback(async () => {
     if (!apiOnline) return
     try {
-      const res = await apiClient.get<{ success: boolean; connections: ConnectionsState }>(
-        '/api/connections'
-      )
+      const res = await apiClient.get<{
+        success: boolean
+        connections: ConnectionsState
+        githubOAuth?: GitHubOAuthInfo
+        hasActiveProject?: boolean
+      }>('/api/connections')
       setConnections(res.connections)
-      const git = await apiClient.get<{ success: boolean; status: GitStatus }>(
-        '/api/deploy/git-status'
-      )
-      setGitStatus(git.status)
-      const prev = await apiClient.get<{ success: boolean; preview: PreviewSession | null }>(
-        '/api/preview'
-      )
-      setPreview(prev.preview)
+      setGithubOAuth(res.githubOAuth ?? null)
+      setNeedsProject(!res.hasActiveProject)
       setError(null)
+
+      try {
+        const git = await apiClient.get<{
+          success: boolean
+          status: GitStatus
+          needsProject?: boolean
+        }>('/api/deploy/git-status')
+        setGitStatus(git.status)
+        if (git.needsProject) setNeedsProject(true)
+      } catch {
+        setGitStatus(null)
+      }
+
+      try {
+        const prev = await apiClient.get<{
+          success: boolean
+          preview: PreviewSession | null
+          needsProject?: boolean
+        }>('/api/preview')
+        setPreview(prev.preview)
+        if (prev.needsProject) setNeedsProject(true)
+      } catch {
+        setPreview(null)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load connections')
     }
@@ -181,6 +210,8 @@ export function useConnections(apiOnline: boolean) {
     deployLog,
     busy,
     error,
+    githubOAuth,
+    needsProject,
     refresh,
     connectGitHub,
     connectVercel,

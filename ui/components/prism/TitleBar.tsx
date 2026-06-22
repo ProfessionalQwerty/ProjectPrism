@@ -1,5 +1,4 @@
 import React from 'react'
-import { Minus, Square, X } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { PrismGlyph } from './PrismGlyph'
 
@@ -59,34 +58,6 @@ export function TitleBar({ activeProvider, onProviderChange, tabs }: TitleBarPro
           </button>
         ))}
       </nav>
-
-      <div className="ml-auto flex h-full items-center">
-        <div className="flex items-center">
-          <WindowControl icon={<Minus className="h-3 w-3" />} />
-          <WindowControl icon={<Square className="h-2.5 w-2.5" />} />
-          <WindowControl icon={<X className="h-3 w-3" />} danger />
-        </div>
-      </div>
     </header>
-  )
-}
-
-function WindowControl({
-  icon,
-  danger,
-}: {
-  icon: React.ReactNode
-  danger?: boolean
-}) {
-  return (
-    <button
-      type="button"
-      className={cn(
-        'flex h-10 w-11 items-center justify-center text-zinc-500 transition-colors',
-        danger ? 'hover:bg-red-950/80 hover:text-red-400' : 'hover:bg-zinc-800/60 hover:text-zinc-300'
-      )}
-    >
-      {icon}
-    </button>
   )
 }

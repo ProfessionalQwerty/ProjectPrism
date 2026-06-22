@@ -21,7 +21,8 @@ interface ConnectionsPanelProps {
 
 export function ConnectionsPanel({ apiOnline, connections }: ConnectionsPanelProps) {
   const [vercelToken, setVercelToken] = useState('')
-  const { connections: state, gitStatus, preview, deployLog, busy, error } = connections
+  const { connections: state, gitStatus, preview, deployLog, busy, error, githubOAuth, needsProject } =
+    connections
 
   if (!apiOnline) {
     return (
@@ -38,6 +39,25 @@ export function ConnectionsPanel({ apiOnline, connections }: ConnectionsPanelPro
       {error ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
           {error}
+        </p>
+      ) : null}
+
+      {needsProject ? (
+        <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+          Connect a project in the sidebar first — deploy and preview need an open project folder.
+        </p>
+      ) : null}
+
+      {githubOAuth && !githubOAuth.ready ? (
+        <p className="rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-[12px] text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300">
+          {githubOAuth.hint || 'GitHub OAuth is not configured on the engine yet.'}
+          {githubOAuth.redirectUrl ? (
+            <>
+              {' '}
+              Callback URL for your GitHub OAuth app:{' '}
+              <code className="break-all font-mono text-[11px]">{githubOAuth.redirectUrl}</code>
+            </>
+          ) : null}
         </p>
       ) : null}
 
@@ -70,9 +90,14 @@ export function ConnectionsPanel({ apiOnline, connections }: ConnectionsPanelPro
             ) : (
               <button
                 type="button"
-                disabled={busy}
+                disabled={busy || githubOAuth?.ready === false}
                 onClick={() => void connections.connectGitHub()}
                 className={actionBtnClass}
+                title={
+                  githubOAuth?.ready === false
+                    ? githubOAuth.hint || 'GitHub OAuth not configured on engine'
+                    : undefined
+                }
               >
                 <Link2 className="h-3 w-3" />
                 Connect
