@@ -233,7 +233,7 @@ async function installPrism(options = {}) {
     const marker = join(target, '.prism-install.json')
     await writeFile(
       marker,
-      JSON.stringify({ version: '0.1.5', exePath, installedAt: new Date().toISOString() }, null, 2)
+      JSON.stringify({ version: '0.1.6', exePath, installedAt: new Date().toISOString() }, null, 2)
     )
 
     console.log('')
