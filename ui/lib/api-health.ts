@@ -8,7 +8,8 @@ export async function checkApiHealth(): Promise<boolean> {
     return false
   }
 
-  const paths = ['/health', '/api/health']
+  // Include `/` — HF load balancer probes root; private Spaces need Authorization too.
+  const paths = ['/', '/health', '/api/health']
   for (const path of paths) {
     try {
       const res = await fetch(`${API_URL}${path}`, {
@@ -16,7 +17,9 @@ export async function checkApiHealth(): Promise<boolean> {
         headers: buildApiHeaders(),
       })
       if (!res.ok) continue
-      const data = (await res.json()) as { success?: boolean; status?: string }
+      const text = await res.text()
+      if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) continue
+      const data = JSON.parse(text) as { success?: boolean; status?: string }
       if (data.status === 'healthy' || data.success === true) {
         lastOnline = true
         return true

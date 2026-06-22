@@ -27,8 +27,10 @@ export function DaemonBanner({ onRetry }: DaemonBannerProps) {
               </p>
             ) : null}
             <p className="text-[12px] text-amber-800">
-              If this persists, the Hugging Face Space may still be starting — wait a minute and retry, or install
-              a newer build from the website.
+              If this persists, the Hugging Face Space may be starting, sleeping, or set to{' '}
+              <strong>Private</strong> (private Spaces return 404 without a read token). Make the Space
+              public or rebuild the app with <code className="font-mono text-[11px]">VITE_HF_ACCESS_TOKEN</code>{' '}
+              configured in CI.
             </p>
           </>
         ) : (

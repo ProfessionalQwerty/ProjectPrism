@@ -2,6 +2,7 @@ import React from 'react'
 import { ArrowUp, Bot, Paperclip, User, X } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { Button } from '../ui/button'
+import { PrismGlyph } from './PrismGlyph'
 
 export interface ChatMessage {
   id: string
@@ -47,7 +48,7 @@ export function CanvasPanel({
     <main className="flex min-w-0 flex-1 flex-col bg-obsidian">
       <section className="mx-4 mt-4 flex items-center gap-3 rounded-lg border border-zinc-800/50 bg-obsidian-200/40 px-4 py-3 backdrop-blur-sm">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-zinc-700/50 bg-zinc-900/50">
-          <img src="/prism-logo.png" alt="" className="h-4 w-4 opacity-80" />
+          <PrismGlyph className="h-4 w-4 opacity-80" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">

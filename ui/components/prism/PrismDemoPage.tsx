@@ -4,6 +4,7 @@ import { AuroraBackground } from '../ui/aurora-background'
 import { Button } from '../ui/button'
 import { ModelLogo } from '../ui/ModelLogo'
 import { PrismBrand } from './PrismBrand'
+import { PrismGlyph } from './PrismGlyph'
 
 interface PrismDemoPageProps {
   onBack: () => void
@@ -74,7 +75,7 @@ export function PrismDemoPage({ onBack }: PrismDemoPageProps) {
         >
           {/* Title bar mock */}
           <div className="flex items-center gap-2 border-b border-neutral-300/80 bg-[#f3f3f3] px-4 py-2.5 dark:border-neutral-700 dark:bg-neutral-900">
-            <img src="./prism-logo.png" alt="" className="h-6 w-6 object-contain" />
+            <PrismGlyph className="h-6 w-6 shrink-0" />
             <span className="text-[14px] font-semibold tracking-wide text-neutral-800 dark:text-neutral-200">PRISM</span>
             <div className="ml-4 flex gap-1">
               {agents.map((a, i) => (

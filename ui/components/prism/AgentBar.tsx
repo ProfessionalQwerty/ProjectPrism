@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { Minus, Plus, Square, X } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { ModelLogo } from '../ui/ModelLogo'
+import { PrismGlyph } from './PrismGlyph'
 import { MODEL_CATALOG, getCatalogEntry, type ModelProviderId } from '../../lib/models'
 
 interface AgentBarProps {
@@ -195,7 +196,7 @@ export function AgentBar({
   return (
     <header className="prism-titlebar flex h-11 shrink-0 items-center border-b border-neutral-300/80 bg-[#ececec] select-none">
       <div className="flex h-full items-center gap-3 border-r border-neutral-300/80 px-4">
-        <img src="/prism-logo.png" alt="" className="h-7 w-7 object-contain" draggable={false} />
+        <PrismGlyph className="h-7 w-7 shrink-0" />
         <span className="text-[15px] font-semibold tracking-wide text-neutral-800">PRISM</span>
       </div>
 

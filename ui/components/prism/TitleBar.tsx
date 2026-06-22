@@ -1,6 +1,7 @@
 import React from 'react'
 import { Minus, Square, X } from 'lucide-react'
 import { cn } from '../../lib/utils'
+import { PrismGlyph } from './PrismGlyph'
 
 const PROVIDERS = ['OpenAI', 'Claude', 'Gemini', 'Ollama'] as const
 
@@ -20,12 +21,7 @@ export function TitleBar({ activeProvider, onProviderChange, tabs }: TitleBarPro
   return (
     <header className="prism-titlebar flex h-10 shrink-0 items-center border-b border-zinc-800/50 bg-obsidian-300/90 backdrop-blur-md select-none">
       <div className="flex h-full items-center gap-3 pl-3 pr-4">
-        <img
-          src="/prism-logo.png"
-          alt="PRISM"
-          className="h-5 w-5 object-contain"
-          draggable={false}
-        />
+        <PrismGlyph className="h-5 w-5 shrink-0" />
         <span className="text-[13px] font-semibold tracking-wide text-zinc-300">PRISM</span>
       </div>
 

@@ -54,7 +54,7 @@ function installDir() {
   return joinPath(home, '.local', 'share', 'prism')
 }
 
-async function fetchLatestAssets(repo = DEFAULT_REPO) {
+async function fetchLatestRelease(repo = DEFAULT_REPO) {
   const res = await fetch(`https://api.github.com/repos/${repo}/releases/latest`, {
     headers: {
       Accept: 'application/vnd.github+json',
@@ -65,7 +65,7 @@ async function fetchLatestAssets(repo = DEFAULT_REPO) {
     throw new Error(`Failed to fetch latest release (${res.status}). Is a release published?`)
   }
   const data = await res.json()
-  return data.assets || []
+  return { tag: data.tag_name || 'unknown', assets: data.assets || [] }
 }
 
 // Strict per-platform matchers — must NEVER fall back to another OS's archive.
@@ -212,7 +212,8 @@ async function installPrism(options = {}) {
   const platform = detectPlatform()
   console.log(`Installing PRISM for ${platform.label}...`)
 
-  const assets = await fetchLatestAssets(options.repo)
+  const { tag, assets } = await fetchLatestRelease(options.repo)
+  console.log(`Latest release: ${tag}`)
   const asset = pickPortableAsset(assets, platform)
   console.log(`Downloading ${asset.name}...`)
 
@@ -233,11 +234,12 @@ async function installPrism(options = {}) {
     const marker = join(target, '.prism-install.json')
     await writeFile(
       marker,
-      JSON.stringify({ version: '0.1.6', exePath, installedAt: new Date().toISOString() }, null, 2)
+      JSON.stringify({ version: tag.replace(/^v/, ''), tag, exePath, installedAt: new Date().toISOString() }, null, 2)
     )
 
     console.log('')
     console.log('PRISM installed successfully.')
+    console.log(`  Version:  ${tag}`)
     console.log(`  Location: ${exePath}`)
     console.log('  Desktop shortcut created.')
     console.log('')

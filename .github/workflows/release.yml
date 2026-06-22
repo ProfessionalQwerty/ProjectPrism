@@ -97,6 +97,7 @@ jobs:
           VITE_API_URL: https://yashshshsh-prism.hf.space
 
           VITE_PRISM_CLIENT_KEY: ${{ secrets.VITE_PRISM_CLIENT_KEY }}
+          VITE_HF_ACCESS_TOKEN: ${{ secrets.VITE_HF_ACCESS_TOKEN }}
 
           VITE_DOWNLOAD_BASE_URL: ${{ secrets.VITE_DOWNLOAD_BASE_URL }}
 
