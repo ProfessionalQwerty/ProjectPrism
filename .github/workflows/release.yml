@@ -83,17 +83,23 @@ jobs:
       - name: Write production env for Vite
         shell: bash
         run: |
-          cat > ui/.env.production.local <<EOF
-          VITE_ELECTRON=1
-          VITE_API_URL=https://yashshshsh-prism.hf.space
-          VITE_PRISM_CLIENT_KEY=${VITE_PRISM_CLIENT_KEY}
-          VITE_HF_ACCESS_TOKEN=${VITE_HF_ACCESS_TOKEN}
-          VITE_DOWNLOAD_BASE_URL=${VITE_DOWNLOAD_BASE_URL}
-          EOF
+          {
+            echo "VITE_ELECTRON=1"
+            echo "VITE_API_URL=https://yashshshsh-prism.hf.space"
+            echo "VITE_PRISM_CLIENT_KEY=${VITE_PRISM_CLIENT_KEY}"
+            echo "VITE_HF_ACCESS_TOKEN=${VITE_HF_ACCESS_TOKEN}"
+            echo "VITE_DOWNLOAD_BASE_URL=${VITE_DOWNLOAD_BASE_URL}"
+          } > ui/.env.production.local
         env:
           VITE_PRISM_CLIENT_KEY: ${{ secrets.VITE_PRISM_CLIENT_KEY }}
           VITE_HF_ACCESS_TOKEN: ${{ secrets.VITE_HF_ACCESS_TOKEN }}
           VITE_DOWNLOAD_BASE_URL: ${{ secrets.VITE_DOWNLOAD_BASE_URL }}
+
+      - name: Install Linux packaging dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfuse2 desktop-file-utils
 
       - name: Build UI and desktop
         run: npm run build:electron && npm run verify-cloud-build
@@ -105,11 +111,18 @@ jobs:
           VITE_DOWNLOAD_BASE_URL: ${{ secrets.VITE_DOWNLOAD_BASE_URL }}
 
       - name: Build installers
-        # dist:only — do NOT rerun build:electron here; it would rebuild without secrets above
+        if: matrix.platform == 'linux'
+        run: npx electron-builder --config electron-builder.yml --linux
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: Build installers
+        if: matrix.platform != 'linux'
         run: npm run dist:only
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_IDENTITY_AUTO_DISCOVERY: false
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
       - name: Upload unsigned Windows installer for SignPath
         if: matrix.platform == 'win'

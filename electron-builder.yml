@@ -38,9 +38,10 @@ mac:
   category: public.app-category.developer-tools
 
 linux:
+  icon: build/icon.png
   target:
-    - AppImage
     - tar.gz
+    - AppImage
   artifactName: PRISM-linux-x64.${ext}
   category: Development
 
