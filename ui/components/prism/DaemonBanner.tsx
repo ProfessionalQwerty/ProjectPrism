@@ -1,6 +1,6 @@
 import React from 'react'
 import { AlertCircle, RefreshCw } from 'lucide-react'
-import { API_URL } from '../../api-config'
+import { API_URL, hasCloudCredentials } from '../../api-config'
 import { isDesktopApp } from '../../lib/desktop-bridge'
 
 interface DaemonBannerProps {
@@ -9,6 +9,7 @@ interface DaemonBannerProps {
 
 export function DaemonBanner({ onRetry }: DaemonBannerProps) {
   const isDesktop = isDesktopApp()
+  const missingBuildSecrets = isDesktop && !hasCloudCredentials()
 
   return (
     <div className="flex items-start gap-3 border-b border-amber-200 bg-amber-50 px-4 py-3 text-[13px] text-amber-900">
@@ -27,10 +28,21 @@ export function DaemonBanner({ onRetry }: DaemonBannerProps) {
               </p>
             ) : null}
             <p className="text-[12px] text-amber-800">
-              If this persists, the Hugging Face Space may be starting, sleeping, or set to{' '}
-              <strong>Private</strong> (private Spaces return 404 without a read token). Make the Space
-              public or rebuild the app with <code className="font-mono text-[11px]">VITE_HF_ACCESS_TOKEN</code>{' '}
-              configured in CI.
+              {missingBuildSecrets ? (
+                <>
+                  This installer was built <strong>without</strong> cloud credentials (
+                  <code className="font-mono text-[11px]">VITE_HF_ACCESS_TOKEN</code> /{' '}
+                  <code className="font-mono text-[11px]">VITE_PRISM_CLIENT_KEY</code>). Install a newer
+                  release from GitHub — the release workflow must run{' '}
+                  <code className="font-mono text-[11px]">build:electron</code> before{' '}
+                  <code className="font-mono text-[11px]">dist:only</code> so secrets are embedded.
+                </>
+              ) : (
+                <>
+                  If this persists, the Hugging Face Space may be starting, sleeping, or your HF read token
+                  may have expired. Check Space logs and rebuild if needed.
+                </>
+              )}
             </p>
           </>
         ) : (

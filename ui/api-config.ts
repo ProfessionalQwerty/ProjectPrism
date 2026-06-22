@@ -14,6 +14,10 @@ export const API_URL =
 const CLIENT_KEY = viteEnv.VITE_PRISM_CLIENT_KEY?.trim() || ''
 const HF_ACCESS_TOKEN = viteEnv.VITE_HF_ACCESS_TOKEN?.trim() || ''
 
+/** True when the build embedded credentials for a private Hugging Face Space. */
+export const hasCloudCredentials = (): boolean =>
+  Boolean(HF_ACCESS_TOKEN && CLIENT_KEY)
+
 export const getApiUrl = (path: string): string => `${API_URL}${path}`
 
 export function buildApiHeaders(extra?: Record<string, string>): Record<string, string> {
