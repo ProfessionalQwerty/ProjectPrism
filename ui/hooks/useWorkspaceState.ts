@@ -22,6 +22,7 @@ export interface Project {
   id: string
   name: string
   repoPath: string
+  lastOpenedAt?: string
 }
 
 export interface AgentInfo {
@@ -107,6 +108,7 @@ export function useWorkspaceState() {
   const [projects, setProjects] = useState<Project[]>([])
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null)
   const [activeProject, setActiveProject] = useState<Project | null>(null)
+  const [bootstrapComplete, setBootstrapComplete] = useState(false)
   const [restorationMessage, setRestorationMessage] = useState<string | null>(null)
   const [activeTaskTitle, setActiveTaskTitle] = useState<string | null>(null)
 
@@ -169,7 +171,7 @@ export function useWorkspaceState() {
       setActiveChatTabId(active?.id ?? null)
       setMessages(active?.messages ?? [])
       setSessionId(active?.sessionId)
-      setActiveSessionId(active?.messages?.length ? active.sessionId : null)
+      setActiveSessionId(active?.sessionId ?? null)
     },
     [activeProjectId]
   )
@@ -193,7 +195,8 @@ export function useWorkspaceState() {
     }
   }, [])
 
-  const refreshProjects = useCallback(async () => {
+  const refreshProjects = useCallback(async (options?: { applyActive?: boolean }) => {
+    const applyActive = options?.applyActive !== false
     try {
       const res = await apiClient.get<{
         success: boolean
@@ -201,11 +204,13 @@ export function useWorkspaceState() {
         activeProjectId: string | null
       }>('/api/projects')
       setProjects(res.projects)
-      setActiveProjectId(res.activeProjectId)
       const active =
         res.projects.find((p) => p.id === res.activeProjectId) || res.projects[0] || null
-      setActiveProject(active)
-      return { projects: res.projects, active }
+      if (applyActive) {
+        setActiveProjectId(res.activeProjectId)
+        setActiveProject(active)
+      }
+      return { projects: res.projects, active: applyActive ? active : null }
     } catch {
       return { projects: [], active: null as Project | null }
     }
@@ -229,6 +234,7 @@ export function useWorkspaceState() {
         const nextAgent = pAgents[0]
         setActiveAgentId(nextAgent)
         loadTabsForAgent(nextAgent)
+        void loadAgentSessions(nextAgent)
       } else {
         setMessages([])
         setSessionId(undefined)
@@ -236,11 +242,14 @@ export function useWorkspaceState() {
         setChatTabs([])
         setActiveChatTabId(null)
       }
+      const stored = loadUserAgentIds()
+      setUserAgentIds(stored)
       setApiOnline(true)
+      await refreshWorkspaceData()
     } catch {
       // Project open failed — engine may still be online
     }
-  }, [refreshProjects, loadTabsForAgent])
+  }, [refreshProjects, loadTabsForAgent, loadAgentSessions, refreshWorkspaceData])
 
   const connectProject = useCallback(
     async (repoPath: string, name?: string) => {
@@ -344,6 +353,15 @@ export function useWorkspaceState() {
 
   const loadSession = useCallback(
     async (sid: string) => {
+      const existingTab = chatTabsRef.current.find((t) => t.sessionId === sid)
+      if (existingTab) {
+        flushActiveTab()
+        setActiveChatTabId(existingTab.id)
+        setMessages(existingTab.messages)
+        setSessionId(existingTab.sessionId)
+        setActiveSessionId(existingTab.sessionId)
+        return
+      }
       try {
         const res = await apiClient.get<{ success: boolean; entries: Array<Record<string, unknown>> }>(
           `/api/ledger?sessionId=${encodeURIComponent(sid)}&limit=100`
@@ -394,7 +412,7 @@ export function useWorkspaceState() {
       setActiveChatTabId(tabId)
       setMessages(tab.messages)
       setSessionId(tab.sessionId)
-      setActiveSessionId(tab.messages.length ? tab.sessionId : null)
+      setActiveSessionId(tab.sessionId)
     },
     [activeChatTabId, flushActiveTab]
   )
@@ -410,7 +428,7 @@ export function useWorkspaceState() {
     setActiveChatTabId(tab.id)
     setMessages([])
     setSessionId(tab.sessionId)
-    setActiveSessionId(null)
+    setActiveSessionId(tab.sessionId)
   }, [activeAgentId, activeProjectId, flushActiveTab])
 
   const closeChatTab = useCallback(
@@ -436,31 +454,18 @@ export function useWorkspaceState() {
   const bootstrap = useCallback(async () => {
     const online = await checkApiHealth()
     setApiOnline(online)
-    if (!online) return
 
     try {
-      await refreshAgents()
-      const { active, projects: projectList } = await refreshProjects()
-      if (active) {
-        await openProject(active.id, projectList)
-      }
-      await refreshWorkspaceData()
-
-      const stored = loadUserAgentIds()
-      setUserAgentIds(stored)
-      const pAgents = active ? getProjectAgentIds(active.id) : []
-      setProjectAgentIds(pAgents)
-
-      const firstModel = pAgents[0] || stored[0]
-      if (firstModel) {
-        setActiveAgentId(firstModel)
-        loadTabsForAgent(firstModel)
-        void loadAgentSessions(firstModel)
+      if (online) {
+        await refreshAgents()
+        await refreshProjects({ applyActive: false })
       }
     } catch {
       // Bootstrap data failed — health check above already set engine status
+    } finally {
+      setBootstrapComplete(true)
     }
-  }, [loadAgentSessions, loadTabsForAgent, openProject, refreshAgents, refreshProjects, refreshWorkspaceData])
+  }, [refreshAgents, refreshProjects])
 
   const bootstrapStarted = useRef(false)
   useEffect(() => {
@@ -689,8 +694,29 @@ export function useWorkspaceState() {
     [runPrompt]
   )
 
+  const displaySessions = useMemo((): AgentSession[] => {
+    const byId = new Map<string, AgentSession>()
+    for (const session of agentSessions) {
+      byId.set(session.sessionId, session)
+    }
+    for (const tab of chatTabs) {
+      if (!byId.has(tab.sessionId)) {
+        byId.set(tab.sessionId, {
+          sessionId: tab.sessionId,
+          query: tab.title,
+          timestamp: tab.updatedAt,
+          status: tab.messages.length > 0 ? 'local' : 'draft',
+        })
+      }
+    }
+    return Array.from(byId.values()).sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    )
+  }, [agentSessions, chatTabs])
+
   return {
     apiOnline,
+    bootstrapComplete,
     projects,
     activeProject,
     activeProjectId,
@@ -710,7 +736,7 @@ export function useWorkspaceState() {
     saveVision,
     repoFiles,
     ledgerEntries,
-    agentSessions,
+    agentSessions: displaySessions,
     activeSessionId,
     loadSession,
     chatTabs: chatTabs.map((t) => ({ id: t.id, sessionId: t.sessionId, title: t.title })),

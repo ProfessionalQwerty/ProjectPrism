@@ -4,6 +4,7 @@ import { Sidebar } from './Sidebar'
 import { EditorPanel } from './EditorPanel'
 import { RightPanel } from './RightPanel'
 import { ConnectProjectModal } from './ConnectProjectModal'
+import { ProjectWelcome } from './ProjectWelcome'
 import { DaemonBanner } from './DaemonBanner'
 import { ChatTabBar, ThemeToggle } from './ChatTabBar'
 import { UpdateCheckButton } from './UpdateCheckButton'
@@ -13,9 +14,24 @@ import { useTheme } from '../../lib/theme'
 
 export function WorkspaceShell() {
   const ws = useWorkspaceState()
-  const connections = useConnections(ws.apiOnline)
+  const connections = useConnections(ws.apiOnline && Boolean(ws.activeProject))
   const { dark, toggle } = useTheme()
   const [connectOpen, setConnectOpen] = useState(false)
+
+  if (!ws.activeProject) {
+    return (
+      <ProjectWelcome
+        apiOnline={ws.apiOnline}
+        bootstrapComplete={ws.bootstrapComplete}
+        projects={ws.projects}
+        dark={dark}
+        onToggleTheme={toggle}
+        onRetryConnection={() => void ws.retryConnection()}
+        onOpenProject={ws.openProject}
+        onConnectUpload={ws.connectProjectUpload}
+      />
+    )
+  }
 
   return (
     <div className="workspace-theme flex h-screen flex-col overflow-hidden bg-[#ececec] text-[16px] dark:bg-neutral-950 dark:text-neutral-100">

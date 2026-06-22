@@ -144,8 +144,14 @@ export function RightPanel({
                     </div>
                     <div className="mt-1 flex items-center justify-between text-[11px] text-neutral-500">
                       <span>{formatTime(session.timestamp)}</span>
-                      <span className={cn(session.status === 'success' ? 'text-emerald-600' : 'text-neutral-400')}>
-                        {session.status}
+                      <span className={cn(
+                        session.status === 'success' || session.status === 'local'
+                          ? 'text-emerald-600'
+                          : session.status === 'draft'
+                            ? 'text-violet-600'
+                            : 'text-neutral-400'
+                      )}>
+                        {session.status === 'draft' ? 'new' : session.status}
                       </span>
                     </div>
                   </button>
