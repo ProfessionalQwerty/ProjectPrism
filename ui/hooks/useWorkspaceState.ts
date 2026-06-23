@@ -216,67 +216,6 @@ export function useWorkspaceState() {
     }
   }, [])
 
-  const openProject = useCallback(async (projectId: string, projectList?: Project[]) => {
-    try {
-      const res = await apiClient.post<{
-        success: boolean
-        restoration: { message: string; activeTaskTitle?: string }
-      }>(`/api/projects/${projectId}/open`, {})
-      setRestorationMessage(res.restoration.message)
-      setActiveTaskTitle(res.restoration.activeTaskTitle || null)
-      setActiveProjectId(projectId)
-      const list = projectList ?? (await refreshProjects()).projects
-      const project = list.find((p) => p.id === projectId)
-      if (project) setActiveProject(project)
-      const pAgents = getProjectAgentIds(projectId)
-      setProjectAgentIds(pAgents)
-      if (pAgents.length > 0) {
-        const nextAgent = pAgents[0]
-        setActiveAgentId(nextAgent)
-        loadTabsForAgent(nextAgent)
-        void loadAgentSessions(nextAgent)
-      } else {
-        setMessages([])
-        setSessionId(undefined)
-        setActiveSessionId(null)
-        setChatTabs([])
-        setActiveChatTabId(null)
-      }
-      const stored = loadUserAgentIds()
-      setUserAgentIds(stored)
-      setApiOnline(true)
-      await refreshWorkspaceData()
-    } catch {
-      // Project open failed — engine may still be online
-    }
-  }, [refreshProjects, loadTabsForAgent, loadAgentSessions, refreshWorkspaceData])
-
-  const connectProject = useCallback(
-    async (repoPath: string, name?: string) => {
-      const res = await apiClient.post<{ success: boolean; project: Project }>(
-        '/api/projects/connect',
-        { repoPath, name }
-      )
-      const { projects: updated } = await refreshProjects()
-      await openProject(res.project.id, updated)
-      return res.project
-    },
-    [openProject, refreshProjects]
-  )
-
-  const connectProjectUpload = useCallback(
-    async (name: string, files: Array<{ path: string; content: string }>) => {
-      const res = await apiClient.post<{ success: boolean; project: Project }>(
-        '/api/projects/connect-upload',
-        { name, files }
-      )
-      const { projects: updated } = await refreshProjects()
-      await openProject(res.project.id, updated)
-      return res.project
-    },
-    [openProject, refreshProjects]
-  )
-
   const mapLedgerEntries = (entries: Array<Record<string, unknown>>): LedgerEntry[] =>
     entries.map((e) => {
       const actor = e.actor as { agentId?: string; displayName?: string } | undefined
@@ -350,6 +289,67 @@ export function useWorkspaceState() {
       setAgentSessions([])
     }
   }, [])
+
+  const openProject = useCallback(async (projectId: string, projectList?: Project[]) => {
+    try {
+      const res = await apiClient.post<{
+        success: boolean
+        restoration: { message: string; activeTaskTitle?: string }
+      }>(`/api/projects/${projectId}/open`, {})
+      setRestorationMessage(res.restoration.message)
+      setActiveTaskTitle(res.restoration.activeTaskTitle || null)
+      setActiveProjectId(projectId)
+      const list = projectList ?? (await refreshProjects()).projects
+      const project = list.find((p) => p.id === projectId)
+      if (project) setActiveProject(project)
+      const pAgents = getProjectAgentIds(projectId)
+      setProjectAgentIds(pAgents)
+      if (pAgents.length > 0) {
+        const nextAgent = pAgents[0]
+        setActiveAgentId(nextAgent)
+        loadTabsForAgent(nextAgent)
+        void loadAgentSessions(nextAgent)
+      } else {
+        setMessages([])
+        setSessionId(undefined)
+        setActiveSessionId(null)
+        setChatTabs([])
+        setActiveChatTabId(null)
+      }
+      const stored = loadUserAgentIds()
+      setUserAgentIds(stored)
+      setApiOnline(true)
+      await refreshWorkspaceData()
+    } catch {
+      // Project open failed — engine may still be online
+    }
+  }, [refreshProjects, loadTabsForAgent, loadAgentSessions, refreshWorkspaceData])
+
+  const connectProject = useCallback(
+    async (repoPath: string, name?: string) => {
+      const res = await apiClient.post<{ success: boolean; project: Project }>(
+        '/api/projects/connect',
+        { repoPath, name }
+      )
+      const { projects: updated } = await refreshProjects()
+      await openProject(res.project.id, updated)
+      return res.project
+    },
+    [openProject, refreshProjects]
+  )
+
+  const connectProjectUpload = useCallback(
+    async (name: string, files: Array<{ path: string; content: string }>) => {
+      const res = await apiClient.post<{ success: boolean; project: Project }>(
+        '/api/projects/connect-upload',
+        { name, files }
+      )
+      const { projects: updated } = await refreshProjects()
+      await openProject(res.project.id, updated)
+      return res.project
+    },
+    [openProject, refreshProjects]
+  )
 
   const loadSession = useCallback(
     async (sid: string) => {
