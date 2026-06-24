@@ -2,17 +2,18 @@ import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, shell } from 'e
 import { existsSync } from 'fs'
 import { join } from 'path'
 import { collectProjectFiles } from './collect-files'
+import type * as AutoUpdaterApi from './auto-updater'
 
 const isDev = !app.isPackaged && process.env.ELECTRON_DEV === '1'
 
-type AutoUpdaterApi = typeof import('./auto-updater')
-let autoUpdaterApi: AutoUpdaterApi | null = null
-
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  autoUpdaterApi = require('./auto-updater') as AutoUpdaterApi
-} catch (err) {
-  console.warn('[PRISM] In-app auto-updater unavailable:', (err as Error).message)
+function loadAutoUpdaterApi(): typeof AutoUpdaterApi | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require('./auto-updater') as typeof AutoUpdaterApi
+  } catch (err) {
+    console.warn('[PRISM] Auto-updater module unavailable:', (err as Error).message)
+    return null
+  }
 }
 
 function resolveAppIcon(): Electron.NativeImage | undefined {
@@ -54,7 +55,6 @@ function createWindow(): BrowserWindow {
   })
 
   win.setMenuBarVisibility(false)
-  autoUpdaterApi?.attachAutoUpdater(win)
 
   win.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
     console.error('[PRISM] did-fail-load', { errorCode, errorDescription, validatedURL })
@@ -78,13 +78,26 @@ function createWindow(): BrowserWindow {
   return win
 }
 
+function unavailableUpdateStatus() {
+  return {
+    phase: 'error' as const,
+    currentVersion: app.getVersion(),
+    latestVersion: null,
+    percent: null,
+    message: null,
+    error: 'Auto-updater not available',
+  }
+}
+
 app.whenReady().then(() => {
   const win = createWindow()
+  const autoUpdaterApi = loadAutoUpdaterApi()
+  autoUpdaterApi?.attachAutoUpdater(win)
 
   if (!isDev && app.isPackaged && autoUpdaterApi) {
     void (async () => {
       await new Promise((r) => setTimeout(r, 8000))
-      const status = await autoUpdaterApi!.checkForAppUpdates()
+      const status = await autoUpdaterApi.checkForAppUpdates()
       if (status.phase === 'available' && status.latestVersion) {
         const { response } = await dialog.showMessageBox(win, {
           type: 'info',
@@ -96,7 +109,7 @@ app.whenReady().then(() => {
           cancelId: 1,
         })
         if (response === 0) {
-          await autoUpdaterApi!.downloadAppUpdate()
+          await autoUpdaterApi.downloadAppUpdate()
         }
       }
     })()
@@ -113,35 +126,23 @@ app.on('window-all-closed', () => {
 
 ipcMain.handle('app:version', () => app.getVersion())
 
-ipcMain.handle('app:checkForUpdates', () => autoUpdaterApi?.checkForAppUpdates() ?? Promise.resolve({
-  phase: 'error',
-  currentVersion: app.getVersion(),
-  latestVersion: null,
-  percent: null,
-  message: null,
-  error: 'Auto-updater not available',
-}))
-
-ipcMain.handle('app:downloadUpdate', () => autoUpdaterApi?.downloadAppUpdate() ?? Promise.resolve({
-  phase: 'error',
-  currentVersion: app.getVersion(),
-  latestVersion: null,
-  percent: null,
-  message: null,
-  error: 'Auto-updater not available',
-}))
-
-ipcMain.handle('app:installUpdate', () => {
-  autoUpdaterApi?.installDownloadedUpdate()
+ipcMain.handle('app:checkForUpdates', () => {
+  const api = loadAutoUpdaterApi()
+  return api ? api.checkForAppUpdates() : Promise.resolve(unavailableUpdateStatus())
 })
 
-ipcMain.handle('app:getUpdateStatus', () => autoUpdaterApi?.getUpdateStatus() ?? {
-  phase: 'error',
-  currentVersion: app.getVersion(),
-  latestVersion: null,
-  percent: null,
-  message: null,
-  error: 'Auto-updater not available',
+ipcMain.handle('app:downloadUpdate', () => {
+  const api = loadAutoUpdaterApi()
+  return api ? api.downloadAppUpdate() : Promise.resolve(unavailableUpdateStatus())
+})
+
+ipcMain.handle('app:installUpdate', () => {
+  loadAutoUpdaterApi()?.installDownloadedUpdate()
+})
+
+ipcMain.handle('app:getUpdateStatus', () => {
+  const api = loadAutoUpdaterApi()
+  return api ? api.getUpdateStatus() : unavailableUpdateStatus()
 })
 
 ipcMain.handle('dialog:pickFolder', async () => {

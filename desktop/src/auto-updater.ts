@@ -1,5 +1,5 @@
 import { app, BrowserWindow } from 'electron'
-import { autoUpdater } from 'electron-updater'
+import type { AppUpdater } from 'electron-updater'
 
 export type UpdatePhase =
   | 'idle'
@@ -29,12 +29,27 @@ let status: UpdateStatus = {
   error: null,
 }
 
+function getAutoUpdater(): AppUpdater | null {
+  try {
+    // Bundled at desktop/dist/node_modules via scripts/copy-main-deps.mjs
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { autoUpdater } = require('electron-updater') as { autoUpdater: AppUpdater }
+    return autoUpdater
+  } catch (err) {
+    console.warn('[PRISM] electron-updater unavailable:', (err as Error).message)
+    return null
+  }
+}
+
 function pushStatus(patch: Partial<UpdateStatus>): void {
   status = { ...status, ...patch }
   mainWindow?.webContents.send('app:updateStatus', status)
 }
 
 export function attachAutoUpdater(win: BrowserWindow): void {
+  const autoUpdater = getAutoUpdater()
+  if (!autoUpdater) return
+
   mainWindow = win
   autoUpdater.autoDownload = false
   autoUpdater.autoInstallOnAppQuit = true
@@ -92,11 +107,20 @@ export function getUpdateStatus(): UpdateStatus {
 }
 
 export async function checkForAppUpdates(): Promise<UpdateStatus> {
+  const autoUpdater = getAutoUpdater()
+  if (!autoUpdater) {
+    pushStatus({
+      phase: 'error',
+      error: 'In-app updater is not available in this build',
+      message: null,
+    })
+    return status
+  }
+
   if (!app.isPackaged) {
-    const current = app.getVersion()
     pushStatus({
       phase: 'not-available',
-      currentVersion: current,
+      currentVersion: app.getVersion(),
       message: 'Updates apply to installed desktop builds only',
       error: null,
     })
@@ -115,7 +139,8 @@ export async function checkForAppUpdates(): Promise<UpdateStatus> {
 }
 
 export async function downloadAppUpdate(): Promise<UpdateStatus> {
-  if (!app.isPackaged) return status
+  const autoUpdater = getAutoUpdater()
+  if (!autoUpdater || !app.isPackaged) return status
   try {
     pushStatus({ phase: 'downloading', percent: 0, message: 'Starting download…' })
     await autoUpdater.downloadUpdate()
@@ -129,5 +154,7 @@ export async function downloadAppUpdate(): Promise<UpdateStatus> {
 }
 
 export function installDownloadedUpdate(): void {
+  const autoUpdater = getAutoUpdater()
+  if (!autoUpdater) return
   autoUpdater.quitAndInstall(false, true)
 }
