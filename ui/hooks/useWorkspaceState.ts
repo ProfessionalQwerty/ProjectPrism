@@ -17,11 +17,13 @@ import {
   type ChatTab,
 } from '../lib/chat-tabs'
 import type { ChatMessage } from '../lib/chat-types'
+import { defaultModelOption, getModelOption, type ModelOption } from '../lib/model-router'
 import {
   mergeSessionsForAgent,
   markSessionDeleted,
   upsertArchivedSession,
 } from '../lib/session-store'
+import { createCollaborationSession } from '../lib/team-api'
 
 export interface Project {
   id: string
@@ -69,7 +71,7 @@ export interface ChatTabView {
 }
 
 const fallbackVision =
-  'Define your product vision here. PRISM will inject this into every agent session as persistent context.'
+  'PRISM is a standalone multi-model agentic development environment built around persistent repository intelligence: a live codebase graph, a structured action ledger, and cross-session context fusion so a fresh model session can continue without a user recap.'
 
 function ledgerToMessages(entries: LedgerEntry[]): ChatMessage[] {
   const msgs: ChatMessage[] = []
@@ -120,6 +122,7 @@ export function useWorkspaceState() {
   const [userAgentIds, setUserAgentIds] = useState<string[]>(() => loadUserAgentIds())
   const [registeredAgents, setRegisteredAgents] = useState<AgentInfo[]>([])
   const [activeAgentId, setActiveAgentId] = useState<string | null>(null)
+  const [selectedModelId, setSelectedModelId] = useState(defaultModelOption().id)
   const [projectAgentIds, setProjectAgentIds] = useState<string[]>([])
 
   const [vision, setVision] = useState(fallbackVision)
@@ -132,6 +135,7 @@ export function useWorkspaceState() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [prompt, setPrompt] = useState('')
   const [isRunning, setIsRunning] = useState(false)
+  const [tokenCapMessage, setTokenCapMessage] = useState<string | null>(null)
   const [sessionId, setSessionId] = useState<string | undefined>()
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
 
@@ -190,6 +194,14 @@ export function useWorkspaceState() {
     })
     return Array.from(ids)
   }, [ledgerEntries, projectAgentIds, userAgentIds])
+
+  const connectedProviders = useMemo(() => {
+    const connected = new Set<string>()
+    for (const agent of registeredAgents) {
+      if (agent.connected) connected.add(agent.agentId)
+    }
+    return connected
+  }, [registeredAgents])
 
   const refreshAgents = useCallback(async () => {
     try {
@@ -419,6 +431,16 @@ export function useWorkspaceState() {
       void loadAgentSessions(agentId)
     },
     [activeAgentId, flushActiveTab, loadAgentSessions, loadTabsForAgent]
+  )
+
+  const selectModel = useCallback(
+    (option: ModelOption) => {
+      setSelectedModelId(option.id)
+      if (activeAgentId !== option.providerId) {
+        selectAgent(option.providerId)
+      }
+    },
+    [activeAgentId, selectAgent]
   )
 
   const selectChatTab = useCallback(
@@ -656,6 +678,13 @@ export function useWorkspaceState() {
       setIsRunning(true)
       const activeSession = sessionId || crypto.randomUUID()
       if (!sessionId) setSessionId(activeSession)
+      if (activeProjectId) {
+        void createCollaborationSession(
+          activeProjectId,
+          activeSession,
+          titleFromMessages([{ id: 't', role: 'user', content: query }])
+        ).catch(() => undefined)
+      }
 
       const pendingId = `pending-${Date.now()}`
       setMessages((current) => [
@@ -714,6 +743,10 @@ export function useWorkspaceState() {
         await loadAgentSessions(activeAgentId)
         setApiOnline(true)
       } catch (err) {
+        const e = err as Error & { showUpgradeModal?: boolean }
+        if (e.showUpgradeModal) {
+          setTokenCapMessage(e.message)
+        }
         setMessages((current) => [
           ...current.filter((m) => m.detail !== 'pending'),
           {
@@ -796,6 +829,9 @@ export function useWorkspaceState() {
     projectModels,
     registeredAgents,
     activeAgentId,
+    selectedModelId,
+    selectModel,
+    connectedProviders,
     selectAgent,
     addAgent,
     removeAgent,
@@ -822,5 +858,7 @@ export function useWorkspaceState() {
     runQuickCommand,
     refreshProjects,
     retryConnection: bootstrap,
+    tokenCapMessage,
+    clearTokenCapMessage: () => setTokenCapMessage(null),
   }
 }

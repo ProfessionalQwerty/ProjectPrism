@@ -4,6 +4,11 @@ import { cn } from '../../lib/utils'
 import { QUICK_COMMANDS } from '../../lib/commands'
 import { ModelLogo } from '../ui/ModelLogo'
 import { AgentThinking } from '../ui/AgentThinking'
+import { ChatShaderBackground } from './ChatShaderBackground'
+import { ModelRouter } from './ModelRouter'
+import { getModelOption } from '../../lib/model-router'
+import type { LlmOAuthProviderId } from '../../lib/models'
+import type { ModelOption } from '../../lib/model-router'
 import type { ChatMessage } from '../../hooks/useWorkspaceState'
 
 interface EditorPanelProps {
@@ -12,11 +17,15 @@ interface EditorPanelProps {
   prompt: string
   isRunning: boolean
   activeAgentId: string | null
+  selectedModelId: string
+  connectedProviders: Set<string>
   hasAgents: boolean
   onPromptChange: (v: string) => void
   onSubmit: () => void
   onSaveVision: (v: string) => Promise<void>
   onQuickCommand: (cmd: string) => void
+  onSelectModel: (option: ModelOption) => void
+  onConnectModel: (providerId: string, oauthProvider?: LlmOAuthProviderId) => void
 }
 
 export function EditorPanel({
@@ -25,11 +34,15 @@ export function EditorPanel({
   prompt,
   isRunning,
   activeAgentId,
+  selectedModelId,
+  connectedProviders,
   hasAgents,
   onPromptChange,
   onSubmit,
   onSaveVision,
   onQuickCommand,
+  onSelectModel,
+  onConnectModel,
 }: EditorPanelProps) {
   const [editingVision, setEditingVision] = useState(false)
   const [draftVision, setDraftVision] = useState(vision)
@@ -46,10 +59,10 @@ export function EditorPanel({
   }, [draftVision, onSaveVision])
 
   return (
-    <main className="relative flex min-w-0 flex-1 flex-col bg-[#fafafa] text-[16px] dark:bg-neutral-950">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(167,139,250,0.07),transparent_50%),radial-gradient(ellipse_at_bottom_left,rgba(251,191,36,0.06),transparent_50%)] dark:opacity-40" />
+    <main className="relative flex min-w-0 flex-1 flex-col text-[16px]">
+      <ChatShaderBackground />
 
-      <div className="relative border-b border-neutral-200/80 bg-white/80 px-5 py-3.5 backdrop-blur-sm dark:border-neutral-700 dark:bg-neutral-900/80">
+      <div className="relative z-10 border-b border-neutral-200/80 bg-white/75 px-5 py-3.5 backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/75">
         {editingVision ? (
           <div className="flex gap-3">
             <textarea
@@ -77,13 +90,14 @@ export function EditorPanel({
         )}
       </div>
 
-      <div ref={scrollRef} className="relative flex-1 overflow-y-auto px-8 py-8">
+      <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto px-8 py-8">
         {!hasAgents && messages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center text-center">
             <div className="max-w-md rounded-2xl border border-neutral-200 bg-white/90 p-9 shadow-sm dark:border-neutral-700 dark:bg-neutral-900/90">
-              <p className="text-[18px] font-medium text-neutral-800 dark:text-neutral-100">Add a model to this project</p>
+              <p className="text-[18px] font-medium text-neutral-800 dark:text-neutral-100">Connect a model</p>
               <p className="mt-3 text-[15px] leading-relaxed text-neutral-500 dark:text-neutral-400">
-                Click <strong>+</strong> in the top bar, enter your API key, then use the chat tabs above or start a new chat.
+                Pick a model below, then use <strong>Connect model</strong> to sign in with ChatGPT or Claude — or add
+                API keys in the Connections panel.
               </p>
             </div>
           </div>
@@ -119,7 +133,19 @@ export function EditorPanel({
         )}
       </div>
 
-      <div className="relative border-t border-neutral-200/80 bg-white/90 p-5 backdrop-blur-sm dark:border-neutral-700 dark:bg-neutral-900/90">
+      <div className="relative z-10 border-t border-neutral-200/80 bg-white/80 p-5 backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/80">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <ModelRouter
+            selectedModelId={selectedModelId}
+            connectedProviders={connectedProviders}
+            onSelectModel={onSelectModel}
+            onConnectModel={onConnectModel}
+            disabled={isRunning}
+          />
+          <span className="text-[11px] text-neutral-400">
+            {getModelOption(selectedModelId)?.label || 'Model'}
+          </span>
+        </div>
         <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-600 dark:bg-neutral-800">
           <div className="flex items-end gap-2 px-4 py-3">
             <button type="button" className="mb-1 rounded-lg p-2 text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700">

@@ -56,3 +56,17 @@ publish:
   provider: github
   owner: ProfessionalQwerty
   repo: ProjectPrism
+
+extraResources:
+  - from: bin/rtk/win32
+    to: rtk
+    filter:
+      - "**/*"
+  - from: bin/rtk/darwin
+    to: rtk
+    filter:
+      - "**/*"
+  - from: bin/rtk/linux
+    to: rtk
+    filter:
+      - "**/*"

@@ -39,7 +39,7 @@ export function Sidebar({
   )
 
   return (
-    <aside className="flex w-[300px] shrink-0 flex-col border-r border-neutral-300/80 bg-[#f3f3f3] dark:border-neutral-700 dark:bg-neutral-900">
+    <aside className="flex w-[300px] shrink-0 flex-col border-r border-neutral-300/60 bg-[#f3f3f3]/75 backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/75">
       <div className="relative border-b border-neutral-300/80 p-2">
         <button
           type="button"

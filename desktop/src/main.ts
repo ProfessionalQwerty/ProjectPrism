@@ -2,6 +2,7 @@ import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, shell } from 'e
 import { existsSync } from 'fs'
 import { join } from 'path'
 import { collectProjectFiles } from './collect-files'
+import { registerPtyHandlers } from './pty-host'
 import type * as AutoUpdaterApi from './auto-updater'
 
 const isDev = !app.isPackaged && process.env.ELECTRON_DEV === '1'
@@ -44,6 +45,7 @@ function createWindow(): BrowserWindow {
     minWidth: 1024,
     minHeight: 640,
     title: 'PRISM',
+    frame: false,
     autoHideMenuBar: true,
     ...(icon ? { icon } : {}),
     webPreferences: {
@@ -91,6 +93,7 @@ function unavailableUpdateStatus() {
 
 app.whenReady().then(() => {
   const win = createWindow()
+  registerPtyHandlers()
   const autoUpdaterApi = loadAutoUpdaterApi()
   autoUpdaterApi?.attachAutoUpdater(win)
 
@@ -169,4 +172,19 @@ ipcMain.handle('shell:openExternal', (_event, url: string) => {
     return shell.openExternal(url)
   }
   return false
+})
+
+ipcMain.handle('window:minimize', (event) => {
+  BrowserWindow.fromWebContents(event.sender)?.minimize()
+})
+
+ipcMain.handle('window:toggleMaximize', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  if (!win) return
+  if (win.isMaximized()) win.unmaximize()
+  else win.maximize()
+})
+
+ipcMain.handle('window:close', (event) => {
+  BrowserWindow.fromWebContents(event.sender)?.close()
 })

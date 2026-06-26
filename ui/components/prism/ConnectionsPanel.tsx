@@ -11,16 +11,28 @@ import {
 import { GitHubIcon } from '../ui/GitHubIcon'
 import { cn } from '../../lib/utils'
 import type { useConnections } from '../../hooks/useConnections'
+import { MODEL_CATALOG, type ModelProviderId } from '../../lib/models'
+import { ModelLogo } from '../ui/ModelLogo'
+import { isTelemetryOptedIn, setTelemetryOptIn } from '../../lib/telemetry-consent'
+import { runLlmOAuthSignIn } from '../../lib/llm-auth'
+import { setTelemetryOptInRemote } from '../../lib/team-api'
 
 type ConnectionsApi = ReturnType<typeof useConnections>
 
 interface ConnectionsPanelProps {
   apiOnline: boolean
   connections: ConnectionsApi
+  canManageModels?: boolean
+  onAddAgent: (
+    modelId: ModelProviderId,
+    options?: { apiKey?: string; authType?: 'oauth' | 'api_key' }
+  ) => Promise<void>
 }
 
-export function ConnectionsPanel({ apiOnline, connections }: ConnectionsPanelProps) {
+export function ConnectionsPanel({ apiOnline, connections, canManageModels = true, onAddAgent }: ConnectionsPanelProps) {
   const [vercelToken, setVercelToken] = useState('')
+  const [llmBusy, setLlmBusy] = useState<string | null>(null)
+  const [telemetryOn, setTelemetryOn] = useState(() => isTelemetryOptedIn())
   const { connections: state, gitStatus, preview, deployLog, busy, error, githubOAuth, needsProject } =
     connections
 
@@ -60,6 +72,64 @@ export function ConnectionsPanel({ apiOnline, connections }: ConnectionsPanelPro
           ) : null}
         </p>
       ) : null}
+
+      <section className="space-y-2">
+        <h3 className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+          AI models
+        </h3>
+        <p className="text-[12px] text-neutral-600 dark:text-neutral-400">
+          {canManageModels
+            ? 'Connect with OAuth (ChatGPT / Claude subscriptions) or API keys for other providers. Team leads manage models in team workspaces.'
+            : 'Models are managed by your team lead. You can use connected models for chat but cannot change credentials.'}
+        </p>
+        <div className="space-y-2">
+          {MODEL_CATALOG.filter((m) => !m.hidden).map((model) => (
+            <div
+              key={model.id}
+              className="flex items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 dark:border-neutral-700 dark:bg-neutral-800"
+            >
+              <div className="flex min-w-0 items-center gap-2">
+                <ModelLogo provider={model.id} size={18} />
+                <div className="min-w-0">
+                  <div className="text-[13px] font-medium text-neutral-800 dark:text-neutral-100">{model.name}</div>
+                  <div className="truncate text-[11px] text-neutral-500">{model.description}</div>
+                </div>
+              </div>
+              {model.authMethod === 'oauth' && model.oauthProvider ? (
+                <button
+                  type="button"
+                  disabled={busy || llmBusy === model.id || !canManageModels}
+                  onClick={() => {
+                    void (async () => {
+                      setLlmBusy(model.id)
+                      try {
+                        await runLlmOAuthSignIn(model.oauthProvider!)
+                        await onAddAgent(model.id, { authType: 'oauth' })
+                      } finally {
+                        setLlmBusy(null)
+                      }
+                    })()
+                  }}
+                  className={actionBtnClass}
+                >
+                  {llmBusy === model.id ? '…' : 'Sign in'}
+                </button>
+              ) : model.authMethod === 'api_key' ? (
+                <span className="text-[10px] text-neutral-400">API key</span>
+              ) : (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void onAddAgent(model.id)}
+                  className={actionBtnClass}
+                >
+                  Add
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section className="space-y-2">
         <h3 className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
@@ -222,6 +292,29 @@ export function ConnectionsPanel({ apiOnline, connections }: ConnectionsPanelPro
         {deployLog ? (
           <p className="text-[12px] text-neutral-600 dark:text-neutral-400">{deployLog}</p>
         ) : null}
+      </section>
+
+      <section className="space-y-2 rounded-lg border border-violet-200/80 bg-violet-50/50 p-3 dark:border-violet-900 dark:bg-violet-950/20">
+        <h3 className="text-[11px] font-semibold uppercase tracking-wider text-violet-700 dark:text-violet-300">
+          PRISM Intelligence Engine
+        </h3>
+        <p className="text-[12px] leading-relaxed text-neutral-600 dark:text-neutral-400">
+          Opt in to send anonymized, RTK-scrubbed workflow telemetry — never raw source code. Helps train better
+          autonomous coding models. Off by default.
+        </p>
+        <label className="flex cursor-pointer items-center gap-2 text-[13px]">
+          <input
+            type="checkbox"
+            checked={telemetryOn}
+            onChange={(e) => {
+              setTelemetryOptIn(e.target.checked)
+              setTelemetryOn(e.target.checked)
+              void setTelemetryOptInRemote(e.target.checked).catch(() => undefined)
+            }}
+            className="rounded border-neutral-300"
+          />
+          Join the PRISM Intelligence Engine
+        </label>
       </section>
     </div>
   )

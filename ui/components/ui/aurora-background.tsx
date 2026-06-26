@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react'
 import { cn } from '../../lib/utils'
+import { PrismShaderBackdrop } from './prism-shader-backdrop'
 
 interface AuroraBackgroundProps extends React.HTMLProps<HTMLDivElement> {
   children: ReactNode
@@ -11,7 +12,8 @@ export function AuroraBackground({ className, children, ...props }: AuroraBackgr
       className={cn('relative flex min-h-screen flex-col overflow-hidden bg-neutral-100', className)}
       {...props}
     >
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <PrismShaderBackdrop variant="muted" className="z-0" />
+      <div className="pointer-events-none absolute inset-0 z-[1] overflow-hidden">
         <div
           className={cn(
             'absolute -inset-[10px] opacity-30 blur-2xl',

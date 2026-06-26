@@ -6,10 +6,16 @@ import {
   startGitHubDeviceLogin,
   type GitHubUser,
 } from '../../lib/github-auth'
+import {
+  getCurrentUser,
+  isSupabaseAuthConfigured,
+  signInWithGitHub,
+  type PrismAuthUser,
+} from '../../lib/supabase-auth'
 import { getDesktopAPI } from '../../lib/desktop-bridge'
 
 interface SignInGateProps {
-  onSignedIn: (user: GitHubUser) => void
+  onSignedIn: (user: GitHubUser | PrismAuthUser) => void
 }
 
 export function SignInGate({ onSignedIn }: SignInGateProps) {
@@ -18,7 +24,20 @@ export function SignInGate({ onSignedIn }: SignInGateProps) {
   const [userCode, setUserCode] = useState<string | null>(null)
   const [status, setStatus] = useState<string | null>(null)
 
-  const startSignIn = async () => {
+  const useSupabase = isSupabaseAuthConfigured()
+
+  const startSupabaseSignIn = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      await signInWithGitHub()
+    } catch (err) {
+      setError((err as Error).message)
+      setBusy(false)
+    }
+  }
+
+  const startLegacyGitHub = async () => {
     setBusy(true)
     setError(null)
     setStatus(null)
@@ -47,20 +66,21 @@ export function SignInGate({ onSignedIn }: SignInGateProps) {
     }
   }
 
-  const clientConfigured = Boolean(getGitHubClientId())
+  const clientConfigured = useSupabase || Boolean(getGitHubClientId())
 
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-[#ececec] p-6 dark:bg-neutral-950">
       <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-8 shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
         <h1 className="text-center text-2xl font-semibold text-neutral-900 dark:text-neutral-50">PRISM</h1>
         <p className="mt-2 text-center text-[14px] text-neutral-500 dark:text-neutral-400">
-          Sign in with your GitHub account to use the desktop app. Your session is stored locally on this device.
+          Sign in with GitHub to sync teams, shared repos, and sessions across devices.
         </p>
 
         {!clientConfigured && (
           <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-900">
-            GitHub OAuth is not configured in this build. Rebuild with{' '}
-            <code className="font-mono">VITE_GITHUB_CLIENT_ID</code> set in CI secrets.
+            Auth is not configured. Set <code className="font-mono">VITE_SUPABASE_URL</code> and{' '}
+            <code className="font-mono">VITE_SUPABASE_ANON_KEY</code>, or{' '}
+            <code className="font-mono">VITE_GITHUB_CLIENT_ID</code> for legacy device flow.
           </p>
         )}
 
@@ -85,7 +105,7 @@ export function SignInGate({ onSignedIn }: SignInGateProps) {
         <button
           type="button"
           disabled={busy || !clientConfigured}
-          onClick={() => void startSignIn()}
+          onClick={() => void (useSupabase ? startSupabaseSignIn() : startLegacyGitHub())}
           className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-neutral-900 px-4 py-3 text-[14px] font-medium text-white hover:bg-neutral-800 disabled:opacity-50 dark:bg-violet-600"
         >
           {busy ? 'Signing in…' : 'Sign in with GitHub'}

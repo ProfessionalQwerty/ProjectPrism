@@ -1,63 +1,34 @@
 import React from 'react'
 import { cn } from '../../lib/utils'
-import { PrismGlyph } from './PrismGlyph'
-
-const PROVIDERS = ['OpenAI', 'Claude', 'Gemini', 'Ollama'] as const
+import { WindowControls } from './WindowControls'
+import { ThemeToggle } from './ChatTabBar'
+import { UpdateCheckButton } from './UpdateCheckButton'
 
 interface TitleBarProps {
-  activeProvider: string
-  onProviderChange: (provider: string) => void
-  tabs?: { id: string; label: string; active?: boolean }[]
+  dark: boolean
+  onToggleTheme: () => void
+  children?: React.ReactNode
 }
 
-export function TitleBar({ activeProvider, onProviderChange, tabs }: TitleBarProps) {
-  const workspaceTabs = tabs ?? [
-    { id: 'workspace', label: 'Workspace', active: true },
-    { id: 'pipelines', label: 'Pipelines' },
-    { id: 'graph', label: 'Graph Index' },
-  ]
-
+export function TitleBar({ dark, onToggleTheme, children }: TitleBarProps) {
   return (
-    <header className="prism-titlebar flex h-10 shrink-0 items-center border-b border-zinc-800/50 bg-obsidian-300/90 backdrop-blur-md select-none">
-      <div className="flex h-full items-center gap-3 pl-3 pr-4">
-        <PrismGlyph className="h-5 w-5 shrink-0" />
-        <span className="text-[13px] font-semibold tracking-wide text-zinc-300">PRISM</span>
+    <div
+      className={cn(
+        'prism-titlebar relative z-20 flex h-11 shrink-0 items-center border-b border-neutral-300/60 bg-[#f3f3f3]/80 backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/80',
+        '[-webkit-app-region:drag]'
+      )}
+    >
+      <div className="flex min-w-0 flex-1 items-center gap-3 px-4 [-webkit-app-region:no-drag]">
+        <span className="text-[15px] font-semibold tracking-wide text-neutral-800 dark:text-neutral-100">
+          PRISM
+        </span>
+        {children}
       </div>
-
-      <div className="flex h-full items-stretch gap-0.5 border-l border-zinc-800/50 pl-3">
-        {workspaceTabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            className={cn(
-              'relative px-3 text-[11px] font-medium uppercase tracking-wider transition-colors',
-              tab.active
-                ? 'text-zinc-200 after:absolute after:bottom-0 after:left-2 after:right-2 after:h-px after:bg-zinc-400'
-                : 'text-zinc-600 hover:text-zinc-400'
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="flex shrink-0 items-center gap-1 pr-1 [-webkit-app-region:no-drag]">
+        <UpdateCheckButton />
+        <ThemeToggle dark={dark} onToggle={onToggleTheme} />
+        <WindowControls />
       </div>
-
-      <nav className="ml-6 flex h-full items-stretch gap-0.5" aria-label="Model provider">
-        {PROVIDERS.map((item) => (
-          <button
-            key={item}
-            type="button"
-            onClick={() => onProviderChange(item)}
-            className={cn(
-              'relative px-3 text-[12px] font-medium transition-colors',
-              activeProvider === item
-                ? 'text-zinc-100 after:absolute after:bottom-0 after:left-1 after:right-1 after:h-px after:bg-zinc-300'
-                : 'text-zinc-600 hover:text-zinc-400'
-            )}
-          >
-            {item}
-          </button>
-        ))}
-      </nav>
-    </header>
+    </div>
   )
 }

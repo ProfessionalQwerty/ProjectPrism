@@ -39,7 +39,7 @@ export function PrivacyPolicyPage({ onBack }: PrivacyPolicyPageProps) {
           <section>
             <h2 className="mb-3 text-xl font-semibold text-neutral-900">Overview</h2>
             <p>
-              PRISM is an open-source desktop shell and web workspace backed by a cloud-hosted intelligence engine.
+              PRISM is a proprietary desktop shell and web workspace backed by a cloud-hosted intelligence engine.
               This policy describes what data the PRISM project and its services collect, how it is used, and your
               choices. By using the PRISM website, desktop app, or cloud engine, you agree to this policy.
             </p>
@@ -150,6 +150,38 @@ export function PrivacyPolicyPage({ onBack }: PrivacyPolicyPageProps) {
               , a free program for open-source projects. SignPath verifies that installers are built from our public
               GitHub repository and signs the binary. SignPath does not receive your project files, prompts, or personal
               usage data — only the installer artifact submitted during the release build.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="mb-3 text-xl font-semibold text-neutral-900">Anonymized developer telemetry (opt-in)</h2>
+            <p>
+              With your explicit consent via &quot;Join the PRISM Intelligence Engine&quot; in settings, we collect
+              anonymized, token-stripped metadata regarding agent workflow sequences, tool usage, and terminal execution
+              logs. We do not collect, view, or store your raw source code, proprietary variables, or personally
+              identifiable information. This behavioral telemetry is strictly used to train and improve autonomous
+              software engineering models. The feature is off by default and can be disabled at any time.
+            </p>
+            <p className="mt-3">
+              If you opt out, compute usage is rate-limited to 600,000 tokens per 5-hour window (with a soft prompt at
+              100,000 tokens per hour). Opting in removes this cap.
+            </p>
+            <h3 className="mb-2 mt-4 font-semibold text-neutral-800">Sample telemetry record (anonymized)</h3>
+            <pre className="overflow-x-auto rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-[12px] text-neutral-700">
+{`{
+  "event_type": "agent_run_complete",
+  "tokens": 1842,
+  "model": "claude-code",
+  "metadata": {
+    "tools_used": ["search_code", "ledger_search"],
+    "session_id_hash": "a3f9…c21",
+    "outcome": "success",
+    "duration_ms": 4200
+  }
+}`}
+            </pre>
+            <p className="mt-2 text-[14px] text-neutral-600">
+              No file contents, API keys, or user identifiers are included — only scrubbed workflow statistics.
             </p>
           </section>
 

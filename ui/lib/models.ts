@@ -24,6 +24,8 @@ export interface ModelCatalogEntry {
   supportsApiKeyFallback?: boolean
   apiKeyLabel?: string
   providerLabel: string
+  /** Internal/legacy — hidden from add-model UI (use model router instead) */
+  hidden?: boolean
 }
 
 export const MODEL_CATALOG: ModelCatalogEntry[] = [
@@ -92,13 +94,14 @@ export const MODEL_CATALOG: ModelCatalogEntry[] = [
   {
     id: 'codex',
     name: 'Codex',
-    description: 'OpenAI Codex for code generation (ChatGPT subscription)',
+    description: 'OpenAI Codex — use GPT model picker (Codex variant)',
     authMethod: 'oauth',
     oauthProvider: 'openai-codex',
     oauthSignInLabel: 'Sign in with ChatGPT',
     supportsApiKeyFallback: true,
     apiKeyLabel: 'OpenAI API Key (advanced)',
     providerLabel: 'Codex',
+    hidden: true,
   },
   {
     id: 'local-model',

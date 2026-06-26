@@ -1,6 +1,7 @@
 /**
  * API Configuration — cloud engine URL + optional client key for HF Spaces.
  */
+import { getAccessToken } from './lib/supabase-auth'
 
 const viteEnv = import.meta.env
 
@@ -34,23 +35,41 @@ export function buildApiHeaders(extra?: Record<string, string>): Record<string, 
   return headers
 }
 
+export async function buildApiHeadersAsync(extra?: Record<string, string>): Promise<Record<string, string>> {
+  const headers = buildApiHeaders(extra)
+  if (!HF_ACCESS_TOKEN) {
+    const token = await getAccessToken()
+    if (token) headers['Authorization'] = `Bearer ${token}`
+  }
+  return headers
+}
+
 export const apiClient = {
   async fetch<T>(path: string, options?: RequestInit): Promise<T> {
     const response = await fetch(getApiUrl(path), {
       ...options,
-      headers: buildApiHeaders(options?.headers as Record<string, string>),
+      headers: await buildApiHeadersAsync(options?.headers as Record<string, string>),
     })
 
     if (!response.ok) {
       let detail = `${response.status} ${response.statusText}`
+      let showUpgradeModal = false
       try {
-        const body = (await response.json()) as { error?: string; message?: string }
+        const body = (await response.json()) as {
+          error?: string
+          message?: string
+          showUpgradeModal?: boolean
+        }
         if (body.error) detail = body.error
         else if (body.message) detail = body.message
+        showUpgradeModal = Boolean(body.showUpgradeModal)
       } catch {
         // ignore non-JSON bodies
       }
-      throw new Error(detail)
+      const err = new Error(detail) as Error & { showUpgradeModal?: boolean; status?: number }
+      err.showUpgradeModal = showUpgradeModal
+      err.status = response.status
+      throw err
     }
 
     return response.json()

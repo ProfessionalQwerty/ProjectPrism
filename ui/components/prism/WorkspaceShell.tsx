@@ -1,16 +1,18 @@
 import React, { useState } from 'react'
-import { AgentBar } from './AgentBar'
-import { Sidebar } from './Sidebar'
 import { EditorPanel } from './EditorPanel'
+import { Sidebar } from './Sidebar'
 import { RightPanel } from './RightPanel'
 import { ConnectProjectModal } from './ConnectProjectModal'
 import { ProjectWelcome } from './ProjectWelcome'
+import { TitleBar } from './TitleBar'
+import { TokenCapModal } from './TokenCapModal'
 import { DaemonBanner } from './DaemonBanner'
-import { ChatTabBar, ThemeToggle } from './ChatTabBar'
-import { UpdateCheckButton } from './UpdateCheckButton'
+import { ChatTabBar } from './ChatTabBar'
+import { PrismShaderBackdrop } from '../ui/prism-shader-backdrop'
 import { useWorkspaceState } from '../../hooks/useWorkspaceState'
 import { useConnections } from '../../hooks/useConnections'
 import { useTheme } from '../../lib/theme'
+import type { LlmOAuthProviderId } from '../../lib/models'
 
 export function WorkspaceShell() {
   const ws = useWorkspaceState()
@@ -18,11 +20,18 @@ export function WorkspaceShell() {
   const { dark, toggle } = useTheme()
   const [connectOpen, setConnectOpen] = useState(false)
   const [sessionsAgentId, setSessionsAgentId] = useState<string | null>(null)
+  const [connectionsTabFocus, setConnectionsTabFocus] = useState(false)
 
   const viewSessionsAgentId = sessionsAgentId || ws.activeAgentId
   const sessionsForView = viewSessionsAgentId
     ? ws.getSessionsForAgent(viewSessionsAgentId)
     : []
+
+  const handleConnectModel = (providerId: string, oauthProvider?: LlmOAuthProviderId) => {
+    setConnectionsTabFocus(true)
+    void providerId
+    void oauthProvider
+  }
 
   if (!ws.activeProject) {
     return (
@@ -40,33 +49,21 @@ export function WorkspaceShell() {
   }
 
   return (
-    <div className="workspace-theme flex h-screen flex-col overflow-hidden bg-[#ececec] text-[16px] dark:bg-neutral-950 dark:text-neutral-100">
+    <div className="workspace-theme relative flex h-screen flex-col overflow-hidden text-[16px] dark:text-neutral-100">
+      <PrismShaderBackdrop variant="full" />
       {!ws.apiOnline && <DaemonBanner onRetry={() => void ws.retryConnection()} />}
 
-      <div className="prism-titlebar flex h-11 shrink-0 items-center border-b border-neutral-300/80 bg-[#f3f3f3] pr-3 dark:border-neutral-700 dark:bg-neutral-900">
-        <AgentBar
-            apiOnline={ws.apiOnline}
-            activeAgentId={ws.activeAgentId}
-            projectModels={ws.projectModels}
-            onSelectAgent={ws.selectAgent}
-            onAddAgent={ws.addAgent}
-            onRemoveAgent={ws.removeAgent}
-          />
-        <UpdateCheckButton />
-        <ThemeToggle dark={dark} onToggle={toggle} />
-      </div>
+      <TitleBar dark={dark} onToggleTheme={toggle} />
 
-      {ws.activeAgentId && (
-        <ChatTabBar
-          tabs={ws.chatTabs}
-          activeTabId={ws.activeChatTabId}
-          onSelectTab={ws.selectChatTab}
-          onNewTab={ws.startNewChat}
-          onCloseTab={ws.closeChatTab}
-        />
-      )}
+      <ChatTabBar
+        tabs={ws.chatTabs}
+        activeTabId={ws.activeChatTabId}
+        onSelectTab={ws.selectChatTab}
+        onNewTab={ws.startNewChat}
+        onCloseTab={ws.closeChatTab}
+      />
 
-      <div className="flex min-h-0 flex-1">
+      <div className="relative z-10 flex min-h-0 flex-1">
         <Sidebar
           activeProject={ws.activeProject}
           projects={ws.projects}
@@ -83,15 +80,21 @@ export function WorkspaceShell() {
           prompt={ws.prompt}
           isRunning={ws.isRunning}
           activeAgentId={ws.activeAgentId}
-          hasAgents={ws.projectModels.length > 0}
+          selectedModelId={ws.selectedModelId}
+          connectedProviders={ws.connectedProviders}
+          hasAgents={ws.connectedProviders.size > 0}
           onPromptChange={ws.setPrompt}
           onSubmit={() => void ws.runPrompt()}
           onSaveVision={ws.saveVision}
           onQuickCommand={ws.runQuickCommand}
+          onSelectModel={ws.selectModel}
+          onConnectModel={handleConnectModel}
         />
 
         <RightPanel
           apiOnline={ws.apiOnline}
+          activeProjectId={ws.activeProjectId}
+          repoPath={ws.activeProject?.repoPath}
           ledgerEntries={ws.ledgerEntries}
           projectModels={ws.projectModels}
           sessionsAgentId={viewSessionsAgentId}
@@ -113,6 +116,9 @@ export function WorkspaceShell() {
             ws.startNewChat()
           }}
           connections={connections}
+          focusConnections={connectionsTabFocus}
+          onConnectionsFocused={() => setConnectionsTabFocus(false)}
+          onAddAgent={ws.addAgent}
         />
       </div>
 
@@ -127,6 +133,13 @@ export function WorkspaceShell() {
           }}
         />
       )}
+
+      <TokenCapModal
+        open={Boolean(ws.tokenCapMessage)}
+        message={ws.tokenCapMessage || ''}
+        onClose={ws.clearTokenCapMessage}
+        onOptIn={ws.clearTokenCapMessage}
+      />
     </div>
   )
 }

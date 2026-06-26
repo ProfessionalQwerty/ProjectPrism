@@ -21,6 +21,16 @@ export interface PrismDesktopAPI {
     files: Array<{ path: string; content: string }>
   } | null>
   openExternal: (url: string) => Promise<boolean>
+  windowMinimize: () => Promise<void>
+  windowToggleMaximize: () => Promise<void>
+  windowClose: () => Promise<void>
+  ptyCreate?: (cwd: string, cols?: number, rows?: number) => Promise<string>
+  ptyWrite?: (id: string, data: string) => Promise<void>
+  ptyResize?: (id: string, cols: number, rows: number) => Promise<void>
+  ptyKill?: (id: string) => Promise<void>
+  ptyFlushLog?: (id: string) => Promise<void>
+  onPtyData?: (listener: (id: string, data: string) => void) => () => void
+  onPtyLogChunk?: (listener: (id: string, chunk: string) => void) => () => void
 }
 
 declare global {

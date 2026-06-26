@@ -6,12 +6,16 @@ import { getCatalogEntry } from '../../lib/models'
 import type { AgentSession, LedgerEntry } from '../../hooks/useWorkspaceState'
 import { ConnectionsPanel } from './ConnectionsPanel'
 import { ConfirmDialog } from './ConfirmDialog'
+import { TerminalPanel } from './TerminalPanel'
+import { joinSession, listLiveSessions } from '../../lib/team-api'
 import type { useConnections } from '../../hooks/useConnections'
 
-type PanelTab = 'datalog' | 'sessions' | 'connections'
+type PanelTab = 'datalog' | 'sessions' | 'connections' | 'terminal'
 
 interface RightPanelProps {
   apiOnline: boolean
+  activeProjectId: string | null
+  repoPath?: string
   ledgerEntries: LedgerEntry[]
   projectModels: string[]
   sessionsAgentId: string | null
@@ -23,6 +27,12 @@ interface RightPanelProps {
   onDeleteSession: (agentId: string, sessionId: string) => void
   onNewChat: () => void
   connections: ReturnType<typeof useConnections>
+  focusConnections?: boolean
+  onConnectionsFocused?: () => void
+  onAddAgent: (
+    modelId: import('../../lib/models').ModelProviderId,
+    options?: { apiKey?: string; authType?: 'oauth' | 'api_key'; local?: { port?: number; model?: string } }
+  ) => Promise<void>
 }
 
 function formatTime(iso: string): string {
@@ -40,6 +50,8 @@ function formatTime(iso: string): string {
 
 export function RightPanel({
   apiOnline,
+  activeProjectId,
+  repoPath,
   ledgerEntries,
   projectModels,
   sessionsAgentId,
@@ -51,27 +63,56 @@ export function RightPanel({
   onDeleteSession,
   onNewChat,
   connections,
+  focusConnections,
+  onConnectionsFocused,
+  onAddAgent,
 }: RightPanelProps) {
   const [tab, setTab] = useState<PanelTab>('sessions')
   const [agentMenuOpen, setAgentMenuOpen] = useState(false)
   const [pendingDelete, setPendingDelete] = useState<AgentSession | null>(null)
+  const [liveSessions, setLiveSessions] = useState<Array<{ id: string; title: string }>>([])
+  const [canManageModels, setCanManageModels] = useState(true)
 
   const viewAgentId = sessionsAgentId || projectModels[0] || null
   const agentName = viewAgentId ? getCatalogEntry(viewAgentId)?.name || viewAgentId : null
 
   useEffect(() => {
+    if (focusConnections) {
+      setTab('connections')
+      onConnectionsFocused?.()
+    }
+  }, [focusConnections, onConnectionsFocused])
+
+  useEffect(() => {
     if (tab === 'sessions' && viewAgentId) {
       onLoadSessionsForAgent(viewAgentId)
     }
-  }, [tab, viewAgentId, onLoadSessionsForAgent])
+    if (tab === 'sessions' && activeProjectId) {
+      void listLiveSessions(activeProjectId)
+        .then((s) => setLiveSessions(s.map((x) => ({ id: x.id, title: x.title }))))
+        .catch(() => setLiveSessions([]))
+    }
+  }, [tab, viewAgentId, onLoadSessionsForAgent, activeProjectId])
+
+  useEffect(() => {
+    if (!activeProjectId) return
+    void import('../../lib/team-api')
+      .then(({ listCloudProjects }) => listCloudProjects())
+      .then((projects) => {
+        const p = projects.find((x) => x.legacy_path_hash === activeProjectId || x.id === activeProjectId)
+        if (p) setCanManageModels(['owner', 'lead'].includes(p.role))
+      })
+      .catch(() => setCanManageModels(true))
+  }, [activeProjectId])
 
   return (
-    <aside className="flex w-[360px] shrink-0 flex-col border-l border-neutral-300/80 bg-[#f3f3f3] dark:border-neutral-700 dark:bg-neutral-900">
+    <aside className="flex w-[360px] shrink-0 flex-col border-l border-neutral-300/60 bg-[#f3f3f3]/75 backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/75">
       <div className="flex h-12 items-center justify-between border-b border-neutral-300/80 px-3 dark:border-neutral-700">
         <div className="flex gap-1">
           <TabBtn active={tab === 'datalog'} onClick={() => setTab('datalog')} icon={<ScrollText className="h-3.5 w-3.5" />} label="Datalog" />
           <TabBtn active={tab === 'sessions'} onClick={() => setTab('sessions')} icon={<MessageSquare className="h-3.5 w-3.5" />} label="Sessions" />
           <TabBtn active={tab === 'connections'} onClick={() => setTab('connections')} icon={<Link2 className="h-3.5 w-3.5" />} label="Connections" />
+          <TabBtn active={tab === 'terminal'} onClick={() => setTab('terminal')} icon={<ScrollText className="h-3.5 w-3.5" />} label="Terminal" />
         </div>
         <span className="flex items-center gap-1.5 text-[12px] text-neutral-500 dark:text-neutral-400">
           <span className={cn('h-2 w-2 rounded-full', apiOnline ? 'bg-emerald-500' : 'bg-amber-500')} />
@@ -119,7 +160,16 @@ export function RightPanel({
           )}
         </div>
       ) : tab === 'connections' ? (
-        <ConnectionsPanel apiOnline={apiOnline} connections={connections} />
+        <ConnectionsPanel
+          apiOnline={apiOnline}
+          connections={connections}
+          onAddAgent={onAddAgent}
+          canManageModels={canManageModels}
+        />
+      ) : tab === 'terminal' ? (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <TerminalPanel cwd={repoPath} projectId={activeProjectId} sessionId={activeSessionId} />
+        </div>
       ) : (
         <>
           <div className="relative border-b border-neutral-300/60 px-3 py-2 dark:border-neutral-700">
@@ -171,6 +221,26 @@ export function RightPanel({
           </div>
 
           <div className="flex-1 overflow-y-auto p-2">
+            {liveSessions.length > 0 && (
+              <div className="mb-3 rounded-lg border border-violet-200 bg-violet-50/80 p-2 dark:border-violet-800 dark:bg-violet-950/30">
+                <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300">
+                  Live sessions
+                </div>
+                {liveSessions.map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => {
+                      if (activeProjectId) void joinSession(activeProjectId, s.id)
+                      onSelectSession(s.id)
+                    }}
+                    className="mb-1 flex w-full rounded-md px-2 py-1.5 text-left text-[12px] hover:bg-violet-100 dark:hover:bg-violet-900/40"
+                  >
+                    {s.title}
+                  </button>
+                ))}
+              </div>
+            )}
             {!viewAgentId ? (
               <EmptyState online={apiOnline} text="Add a model with the + button to view its sessions." />
             ) : sessions.length === 0 ? (

@@ -24,7 +24,7 @@ export function getNpmInstallLabel(): string {
 }
 
 export function getInstallHint(): string {
-  return 'Requires Node.js 18+. Installs PRISM and creates a desktop shortcut. One command — Windows, macOS, or Linux.'
+  return 'Open Command Prompt (cmd) or PowerShell on Windows, Terminal on macOS/Linux. Paste the command below and press Enter. Requires Node.js 18+.'
 }
 
 export function getInstallSupportLabel(): string {

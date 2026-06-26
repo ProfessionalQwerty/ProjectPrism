@@ -13,18 +13,14 @@ const SKIP_DIRS = new Set([
 ])
 
 const TEXT_EXTENSIONS = new Set([
-  '.ts',
-  '.tsx',
-  '.js',
-  '.jsx',
-  '.json',
-  '.md',
-  '.css',
-  '.html',
-  '.yml',
-  '.yaml',
-  '.txt',
-  '.env.example',
+  '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs',
+  '.json', '.md', '.mdx', '.css', '.scss', '.less',
+  '.html', '.htm', '.vue', '.svelte', '.astro',
+  '.py', '.rb', '.go', '.rs', '.java', '.kt', '.swift',
+  '.yml', '.yaml', '.toml', '.xml', '.svg',
+  '.txt', '.env.example', '.gitignore', '.dockerignore',
+  '.sql', '.graphql', '.prisma', '.sh', '.ps1', '.bat',
+  '.dockerfile', '.lock',
 ])
 
 export const MAX_FILES = 500

@@ -3,8 +3,10 @@ import { FolderOpen, FolderPlus, Clock } from 'lucide-react'
 import { isDesktopApp, pickFolderAndCollect } from '../../lib/desktop-bridge'
 import type { Project } from '../../hooks/useWorkspaceState'
 import { DaemonBanner } from './DaemonBanner'
-import { ThemeToggle } from './ChatTabBar'
-import { UpdateCheckButton } from './UpdateCheckButton'
+import { TitleBar } from './TitleBar'
+import { PrismShaderBackdrop } from '../ui/prism-shader-backdrop'
+import { Users } from 'lucide-react'
+import { createTeam, createTeamInvite, redeemInvite } from '../../lib/team-api'
 
 interface ProjectWelcomeProps {
   apiOnline: boolean
@@ -14,7 +16,7 @@ interface ProjectWelcomeProps {
   onToggleTheme: () => void
   onRetryConnection: () => void
   onOpenProject: (id: string) => Promise<void>
-  onConnectUpload: (name: string, files: Array<{ path: string; content: string }>) => Promise<void>
+  onConnectUpload: (name: string, files: Array<{ path: string; content: string }>) => Promise<unknown>
 }
 
 export function ProjectWelcome({
@@ -30,7 +32,42 @@ export function ProjectWelcome({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [name, setName] = useState('')
+  const [teamInviteUrl, setTeamInviteUrl] = useState<string | null>(null)
+  const [joinToken, setJoinToken] = useState('')
   const desktop = isDesktopApp()
+
+  const handleCreateTeam = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const teamName = name.trim() || 'My Team'
+      const org = await createTeam(teamName)
+      const invite = await createTeamInvite(org.id, 'member')
+      setTeamInviteUrl(invite.inviteUrl)
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleJoinTeam = async () => {
+    const token = joinToken.trim().replace(/^prism:\/\/invite\//, '')
+    if (!token) {
+      setError('Paste an invite link or token')
+      return
+    }
+    setLoading(true)
+    setError(null)
+    try {
+      await redeemInvite(token)
+      setJoinToken('')
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const recent = [...projects].sort((a, b) => {
     const ta = a.lastOpenedAt ? new Date(a.lastOpenedAt).getTime() : 0
@@ -77,15 +114,13 @@ export function ProjectWelcome({
   }
 
   return (
-    <div className="workspace-theme flex h-screen flex-col overflow-hidden bg-[#ececec] text-[16px] dark:bg-neutral-950 dark:text-neutral-100">
+    <div className="workspace-theme relative flex h-screen flex-col overflow-hidden text-[16px] dark:text-neutral-100">
+      <PrismShaderBackdrop variant="full" />
       {!apiOnline && <DaemonBanner onRetry={onRetryConnection} />}
 
-      <div className="flex items-center justify-end gap-2 border-b border-neutral-300/80 bg-[#f3f3f3] px-4 py-2 dark:border-neutral-700 dark:bg-neutral-900">
-        <UpdateCheckButton />
-        <ThemeToggle dark={dark} onToggle={onToggleTheme} />
-      </div>
+      <TitleBar dark={dark} onToggleTheme={onToggleTheme} />
 
-      <div className="flex flex-1 items-center justify-center p-6">
+      <div className="relative z-10 flex flex-1 items-center justify-center p-6">
         <div className="w-full max-w-lg">
           <div className="mb-8 text-center">
             <h1 className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50">
@@ -119,8 +154,42 @@ export function ProjectWelcome({
                 className="mb-3 flex w-full items-center justify-center gap-2 rounded-lg bg-neutral-900 px-4 py-3 text-[14px] font-medium text-white hover:bg-neutral-800 disabled:opacity-50 dark:bg-violet-600 dark:hover:bg-violet-500"
               >
                 <FolderOpen className="h-4 w-4" />
-                {loading ? 'Opening…' : desktop ? 'Open folder' : 'Open folder (desktop app)'}
+                {loading ? 'Opening…' : desktop ? 'Open folder (solo)' : 'Open folder (desktop app)'}
               </button>
+
+              <div className="mb-3 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  disabled={loading || !apiOnline}
+                  onClick={() => void handleCreateTeam()}
+                  className="flex items-center justify-center gap-2 rounded-lg border border-violet-200 bg-violet-50 px-3 py-2.5 text-[13px] font-medium text-violet-900 hover:bg-violet-100 disabled:opacity-50 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-100"
+                >
+                  <Users className="h-4 w-4" />
+                  Create team
+                </button>
+                <button
+                  type="button"
+                  disabled={loading || !apiOnline}
+                  onClick={() => void handleJoinTeam()}
+                  className="flex items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-[13px] font-medium text-neutral-800 hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100"
+                >
+                  Join team
+                </button>
+              </div>
+
+              <input
+                value={joinToken}
+                onChange={(e) => setJoinToken(e.target.value)}
+                placeholder="Invite link or token (Join team)"
+                className="mb-3 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-violet-400 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100"
+              />
+
+              {teamInviteUrl && (
+                <div className="mb-3 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-[12px] text-green-900 dark:border-green-900 dark:bg-green-950 dark:text-green-100">
+                  Team created. Share invite:{' '}
+                  <code className="break-all font-mono text-[11px]">{teamInviteUrl}</code>
+                </div>
+              )}
 
               {recent.length > 0 && (
                 <div className="mt-6 rounded-xl border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">

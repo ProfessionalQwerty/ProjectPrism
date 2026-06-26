@@ -1,5 +1,5 @@
 import React from 'react'
-import { ArrowLeft, GitBranch, Layers, Shield, Workflow, Zap } from 'lucide-react'
+import { ArrowLeft, GitBranch, Layers, Shield, Shrink, Workflow, Zap } from 'lucide-react'
 import { GitHubIcon } from '../ui/GitHubIcon'
 import { AuroraBackground } from '../ui/aurora-background'
 import { Button } from '../ui/button'
@@ -12,6 +12,17 @@ interface FeaturesDetailPageProps {
 }
 
 const sections = [
+  {
+    icon: Shrink,
+    title: 'Token Compression Stack',
+    summary: 'Three layers attack token waste before and during every model call.',
+    bullets: [
+      'RTK (Rust): scrubs terminal output, ledger writes, grep results, and session history',
+      'Headroom (desktop): compresses LLM request payloads — JSON tool output, code, prose — up to 60–95%',
+      'PRISM graph: AST + vector-ranked file snippets trimmed to your token budget',
+      'Cloud engine v1: RTK + graph budgeting (Headroom optional on local/desktop engine)',
+    ],
+  },
   {
     icon: Layers,
     title: 'Context Layer',

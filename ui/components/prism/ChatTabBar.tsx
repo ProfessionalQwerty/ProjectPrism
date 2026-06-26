@@ -18,7 +18,7 @@ interface ChatTabBarProps {
 
 export function ChatTabBar({ tabs, activeTabId, onSelectTab, onNewTab, onCloseTab }: ChatTabBarProps) {
   return (
-    <div className="flex items-center gap-1 overflow-x-auto border-b border-neutral-200/80 bg-white/90 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-900/90">
+    <div className="relative z-10 flex items-center gap-1 overflow-x-auto border-b border-neutral-200/80 bg-white/75 px-3 py-2 backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/75">
       {tabs.map((tab) => {
         const active = tab.id === activeTabId
         return (
