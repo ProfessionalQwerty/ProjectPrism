@@ -1,5 +1,6 @@
 node_modules/
 ui/node_modules/
+ui/package-lock.json
 desktop/node_modules/
 ui/dist/
 desktop/dist/
