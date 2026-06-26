@@ -6,6 +6,11 @@ directories:
   output: release
   buildResources: build
 
+# Native .node binaries cannot execute from inside app.asar
+asarUnpack:
+  - "**/*.node"
+  - "**/node-pty/**"
+
 files:
   - desktop/dist/**/*
   - ui/dist/**/*

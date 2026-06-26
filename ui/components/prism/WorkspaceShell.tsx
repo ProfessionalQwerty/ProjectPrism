@@ -5,6 +5,7 @@ import { RightPanel } from './RightPanel'
 import { ConnectProjectModal } from './ConnectProjectModal'
 import { ProjectWelcome } from './ProjectWelcome'
 import { TitleBar } from './TitleBar'
+import { ModeSelector } from './ModeSelector'
 import { TokenCapModal } from './TokenCapModal'
 import { DaemonBanner } from './DaemonBanner'
 import { ChatTabBar } from './ChatTabBar'
@@ -53,7 +54,14 @@ export function WorkspaceShell() {
       <PrismShaderBackdrop variant="full" />
       {!ws.apiOnline && <DaemonBanner onRetry={() => void ws.retryConnection()} />}
 
-      <TitleBar dark={dark} onToggleTheme={toggle} />
+      <TitleBar dark={dark} onToggleTheme={toggle}>
+        <ModeSelector
+          mode={ws.workspaceMode}
+          onModeChange={ws.setWorkspaceMode}
+          disabled={ws.isRunning}
+          menuPlacement="down"
+        />
+      </TitleBar>
 
       <ChatTabBar
         tabs={ws.chatTabs}
@@ -83,6 +91,8 @@ export function WorkspaceShell() {
           selectedModelId={ws.selectedModelId}
           connectedProviders={ws.connectedProviders}
           hasAgents={ws.connectedProviders.size > 0}
+          workspaceMode={ws.workspaceMode}
+          onWorkspaceModeChange={ws.setWorkspaceMode}
           onPromptChange={ws.setPrompt}
           onSubmit={() => void ws.runPrompt()}
           onSaveVision={ws.saveVision}

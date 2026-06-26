@@ -93,7 +93,10 @@ function unavailableUpdateStatus() {
 
 app.whenReady().then(() => {
   const win = createWindow()
-  registerPtyHandlers()
+  const terminalReady = registerPtyHandlers()
+  if (!terminalReady) {
+    console.warn('[PRISM] Packaged terminal unavailable — rebuild with node-pty prebuilds for your platform')
+  }
   const autoUpdaterApi = loadAutoUpdaterApi()
   autoUpdaterApi?.attachAutoUpdater(win)
 

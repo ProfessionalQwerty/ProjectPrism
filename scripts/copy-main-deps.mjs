@@ -25,6 +25,8 @@ const PACKAGES = [
   'debug',
   'ms',
   'sax',
+  // Native terminal — must ship beside main process (see electron-builder asarUnpack)
+  'node-pty',
 ]
 
 function copyPackage(name) {

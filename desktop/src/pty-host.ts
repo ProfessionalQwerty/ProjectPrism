@@ -1,8 +1,10 @@
-import * as pty from 'node-pty'
 import { ipcMain, type IpcMainInvokeEvent, type WebContents } from 'electron'
 import { normalizeTerminalChunk } from './terminal-sanitize'
 
-const shells = new Map<string, pty.IPty>()
+type PtyModule = typeof import('node-pty')
+type IPty = import('node-pty').IPty
+
+const shells = new Map<string, IPty>()
 
 /** Per-PTY scrubbed log buffer — flushed in chunks, never per-character. */
 interface LogBuffer {
@@ -16,6 +18,22 @@ const logBuffers = new Map<string, LogBuffer>()
 const LOG_FLUSH_MS = 500
 const LOG_MIN_CHARS = 256
 const LOG_MAX_CHARS = 8192
+
+let ptyModule: PtyModule | null = null
+let ptyLoadError: string | null = null
+
+function loadPtyModule(): PtyModule {
+  if (ptyModule) return ptyModule
+  if (ptyLoadError) throw new Error(ptyLoadError)
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    ptyModule = require('node-pty') as PtyModule
+    return ptyModule
+  } catch (err) {
+    ptyLoadError = (err as Error).message
+    throw new Error(`Terminal unavailable: ${ptyLoadError}`)
+  }
+}
 
 function flushLogChunk(id: string, force = false): void {
   const buf = logBuffers.get(id)
@@ -58,7 +76,28 @@ function stripForBuffer(data: string): string {
   return normalizeTerminalChunk(data, LOG_MAX_CHARS)
 }
 
-export function registerPtyHandlers(): void {
+function registerUnavailableHandlers(message: string): void {
+  const fail = () => {
+    throw new Error(message)
+  }
+  ipcMain.handle('pty:create', fail)
+  ipcMain.handle('pty:write', fail)
+  ipcMain.handle('pty:resize', fail)
+  ipcMain.handle('pty:kill', fail)
+  ipcMain.handle('pty:flush-log', fail)
+}
+
+export function registerPtyHandlers(): boolean {
+  let pty: PtyModule
+  try {
+    pty = loadPtyModule()
+  } catch (err) {
+    const message = (err as Error).message
+    console.warn('[PRISM] node-pty unavailable — integrated terminal disabled:', message)
+    registerUnavailableHandlers(message)
+    return false
+  }
+
   ipcMain.handle('pty:create', (event: IpcMainInvokeEvent, cwd: string, cols = 80, rows = 24) => {
     const id = `pty-${Date.now()}`
     const shell = process.platform === 'win32' ? 'powershell.exe' : process.env.SHELL || 'bash'
@@ -73,9 +112,7 @@ export function registerPtyHandlers(): void {
     logBuffers.set(id, { raw: '', timer: null, sender: event.sender })
 
     p.onData((data) => {
-      // Raw stream for xterm display only
       event.sender.send('pty:data', id, data)
-      // Scrubbed + batched for ledger/indexing — never real-time per char
       appendScrubbedLog(id, data, event.sender)
     })
 
@@ -109,4 +146,6 @@ export function registerPtyHandlers(): void {
     if (buf) buf.sender = event.sender
     flushLogChunk(id, true)
   })
+
+  return true
 }

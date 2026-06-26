@@ -6,7 +6,10 @@ import { ModelLogo } from '../ui/ModelLogo'
 import { AgentThinking } from '../ui/AgentThinking'
 import { ChatShaderBackground } from './ChatShaderBackground'
 import { ModelRouter } from './ModelRouter'
+import { ModeSelector } from './ModeSelector'
 import { getModelOption } from '../../lib/model-router'
+import { getWorkspaceModeDefinition } from '../../lib/workspace-modes'
+import type { WorkspaceMode } from '../../lib/workspace-modes'
 import type { LlmOAuthProviderId } from '../../lib/models'
 import type { ModelOption } from '../../lib/model-router'
 import type { ChatMessage } from '../../hooks/useWorkspaceState'
@@ -20,6 +23,8 @@ interface EditorPanelProps {
   selectedModelId: string
   connectedProviders: Set<string>
   hasAgents: boolean
+  workspaceMode: WorkspaceMode
+  onWorkspaceModeChange: (mode: WorkspaceMode) => void
   onPromptChange: (v: string) => void
   onSubmit: () => void
   onSaveVision: (v: string) => Promise<void>
@@ -37,6 +42,8 @@ export function EditorPanel({
   selectedModelId,
   connectedProviders,
   hasAgents,
+  workspaceMode,
+  onWorkspaceModeChange,
   onPromptChange,
   onSubmit,
   onSaveVision,
@@ -120,7 +127,7 @@ export function EditorPanel({
               </div>
               <div className="max-w-[85%]">
                 {msg.detail === 'pending' ? (
-                  <AgentThinking agentId={activeAgentId} />
+                  <AgentThinking agentId={activeAgentId} stages={msg.stages} />
                 ) : (
                   <p className="text-[16px] leading-relaxed text-neutral-800 dark:text-neutral-100">{msg.content}</p>
                 )}
@@ -135,15 +142,25 @@ export function EditorPanel({
 
       <div className="relative z-10 border-t border-neutral-200/80 bg-white/80 p-5 backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/80">
         <div className="mb-3 flex items-center justify-between gap-2">
-          <ModelRouter
-            selectedModelId={selectedModelId}
-            connectedProviders={connectedProviders}
-            onSelectModel={onSelectModel}
-            onConnectModel={onConnectModel}
-            disabled={isRunning}
-          />
+          <div className="flex items-center gap-2">
+            <ModeSelector
+              mode={workspaceMode}
+              onModeChange={onWorkspaceModeChange}
+              disabled={isRunning}
+              menuPlacement="up"
+              compact
+            />
+            <span className="hidden h-4 w-px bg-neutral-200 dark:bg-neutral-700 sm:block" />
+            <ModelRouter
+              selectedModelId={selectedModelId}
+              connectedProviders={connectedProviders}
+              onSelectModel={onSelectModel}
+              onConnectModel={onConnectModel}
+              disabled={isRunning}
+            />
+          </div>
           <span className="text-[11px] text-neutral-400">
-            {getModelOption(selectedModelId)?.label || 'Model'}
+            {getWorkspaceModeDefinition(workspaceMode).label} · {getModelOption(selectedModelId)?.label || 'Model'}
           </span>
         </div>
         <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-600 dark:bg-neutral-800">
@@ -161,7 +178,11 @@ export function EditorPanel({
                 }
               }}
               rows={1}
-              placeholder={hasAgents ? 'Message PRISM…' : 'Add a model first…'}
+              placeholder={
+                hasAgents
+                  ? getWorkspaceModeDefinition(workspaceMode).placeholder
+                  : 'Add a model first…'
+              }
               className="max-h-44 min-h-[48px] flex-1 resize-none bg-transparent py-2.5 text-[16px] outline-none dark:text-neutral-100"
             />
             <button

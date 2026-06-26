@@ -157,9 +157,21 @@ export function useConnections(apiOnline: boolean) {
           success: boolean
           liveUrl?: string
           message?: string
+          recovered?: boolean
+          recoveryAttempts?: number
+          patchesApplied?: string[]
           error?: string
-        }>('/api/deploy', { message: message || 'Deploy from PRISM' })
-        setDeployLog(res.liveUrl || res.message || 'Deploy complete')
+        }>('/api/deploy', { message: message || 'Deploy from PRISM', autoRecover: true })
+        if (res.recovered) {
+          setDeployLog(
+            res.message ||
+              `Auto-recovered after ${res.recoveryAttempts || 1} attempt(s)${
+                res.patchesApplied?.length ? ` — patched ${res.patchesApplied.join(', ')}` : ''
+              }`
+          )
+        } else {
+          setDeployLog(res.liveUrl || res.message || 'Deploy complete')
+        }
         await refresh()
         return res
       } catch (err) {

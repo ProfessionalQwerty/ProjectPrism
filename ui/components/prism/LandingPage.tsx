@@ -50,6 +50,24 @@ const PILLARS = [
   },
 ]
 
+const COMPRESSION_LAYERS = [
+  {
+    layer: 'Layer 1 — RTK',
+    tech: 'Rust Token Killer',
+    body: 'Terminal output, logs, ledger writes, and grep results — scrubbed before they enter memory.',
+  },
+  {
+    layer: 'Layer 2 — Headroom',
+    tech: 'SmartCrusher + Kompress',
+    body: 'JSON tool results, code blocks, and conversation history compressed up to 60–95% before model APIs (desktop).',
+  },
+  {
+    layer: 'Layer 3 — PRISM graph',
+    tech: 'AST + vector search',
+    body: 'Relevance-ranked file snippets trimmed to your token budget on every call.',
+  },
+]
+
 const POSITIONING = [
   {
     icon: Layers,
@@ -70,7 +88,7 @@ const CAPABILITIES = [
   { icon: GitBranch, label: 'Multi-agent pipelines' },
   { icon: Rocket, label: 'One-click deploy' },
   { icon: FileLock2, label: 'File-lock safety' },
-  { icon: Zap, label: '30–50% fewer tokens' },
+  { icon: Zap, label: '60–95% compression stack' },
   { icon: History, label: 'Per-model history' },
   { icon: Terminal, label: '/catchup sync' },
   { icon: Globe, label: 'Local preview' },
@@ -158,6 +176,10 @@ export function LandingPage({
             Switch AI models.
             <br />
             <span className="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-amber-500 bg-clip-text text-transparent">
+              Keep your context.
+            </span>
+            <br />
+            <span className="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-amber-500 bg-clip-text text-transparent">
               Crush token waste.
             </span>
           </h1>
@@ -181,6 +203,54 @@ export function LandingPage({
 
         <div className="lg:pl-4">
           <HeroPreview />
+        </div>
+      </section>
+
+      {/* COMPRESSION STACK — RTK, Headroom, graph budgeting */}
+      <section className="mx-auto max-w-6xl px-6 pb-12">
+        <div className="rounded-2xl border border-violet-200/80 bg-gradient-to-br from-violet-50/90 via-white to-fuchsia-50/40 p-8 backdrop-blur-sm sm:p-10">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm font-bold uppercase tracking-[0.28em] text-violet-600">Compression stack</p>
+              <h2 className="mt-2 text-2xl font-semibold text-neutral-900 sm:text-3xl">
+                RTK + Headroom + graph budgeting
+              </h2>
+              <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-neutral-600">
+                Most agents burn tokens on repeated logs, bloated tool JSON, and unfocused file dumps. PRISM attacks
+                waste at three layers — locally, before your bill grows.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onTechnologies}
+              className="inline-flex shrink-0 items-center gap-1.5 text-[14px] font-medium text-violet-600 hover:text-violet-700"
+            >
+              See the full stack
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            {COMPRESSION_LAYERS.map((layer) => (
+              <div
+                key={layer.layer}
+                className="rounded-xl border border-violet-100 bg-white/90 p-5 shadow-sm"
+              >
+                <p className="text-[11px] font-bold uppercase tracking-wider text-violet-600">{layer.layer}</p>
+                <p className="mt-1 text-[15px] font-semibold text-neutral-900">{layer.tech}</p>
+                <p className="mt-2 text-[13px] leading-relaxed text-neutral-600">{layer.body}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-6 text-center text-[12px] text-neutral-500 sm:text-left">
+            Headroom runs on desktop/local engine when enabled. Cloud engine uses RTK + graph budgeting in v1.{' '}
+            <button
+              type="button"
+              onClick={onIntegrations}
+              className="font-medium text-violet-600 hover:text-violet-700"
+            >
+              View integrations →
+            </button>
+          </p>
         </div>
       </section>
 
@@ -295,6 +365,9 @@ export function LandingPage({
               </div>
             ))}
           </div>
+          <p className="mt-4 text-center text-[12px] text-neutral-500 sm:text-left">
+            Desktop: RTK + Headroom + graph. Cloud: RTK + graph token budgeting.
+          </p>
         </div>
       </section>
 

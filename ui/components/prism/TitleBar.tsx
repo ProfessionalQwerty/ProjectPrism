@@ -22,8 +22,12 @@ export function TitleBar({ dark, onToggleTheme, children }: TitleBarProps) {
         <span className="text-[15px] font-semibold tracking-wide text-neutral-800 dark:text-neutral-100">
           PRISM
         </span>
-        {children}
       </div>
+      {children && (
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 [-webkit-app-region:no-drag]">
+          {children}
+        </div>
+      )}
       <div className="flex shrink-0 items-center gap-1 pr-1 [-webkit-app-region:no-drag]">
         <UpdateCheckButton />
         <ThemeToggle dark={dark} onToggle={onToggleTheme} />

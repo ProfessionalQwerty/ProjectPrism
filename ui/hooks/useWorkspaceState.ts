@@ -16,7 +16,16 @@ import {
   titleFromMessages,
   type ChatTab,
 } from '../lib/chat-tabs'
-import type { ChatMessage } from '../lib/chat-types'
+import type { ChatMessage, ThinkingStage } from '../lib/chat-types'
+import {
+  getWorkspaceModeDefinition,
+  initialThinkingStages,
+  loadWorkspaceMode,
+  saveWorkspaceMode,
+  shouldUseStagedOrchestration,
+  wrapQueryForMode,
+  type WorkspaceMode,
+} from '../lib/workspace-modes'
 import { defaultModelOption, getModelOption, type ModelOption } from '../lib/model-router'
 import {
   mergeSessionsForAgent,
@@ -62,7 +71,8 @@ export interface AgentSession {
   duration?: number
 }
 
-export type { ChatMessage } from '../lib/chat-types'
+export type { ChatMessage, ThinkingStage } from '../lib/chat-types'
+export type { WorkspaceMode } from '../lib/workspace-modes'
 
 export interface ChatTabView {
   id: string
@@ -134,6 +144,7 @@ export function useWorkspaceState() {
 
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [prompt, setPrompt] = useState('')
+  const [workspaceMode, setWorkspaceModeState] = useState<WorkspaceMode>(loadWorkspaceMode)
   const [isRunning, setIsRunning] = useState(false)
   const [tokenCapMessage, setTokenCapMessage] = useState<string | null>(null)
   const [sessionId, setSessionId] = useState<string | undefined>()
@@ -645,6 +656,11 @@ export function useWorkspaceState() {
     setApiOnline(true)
   }, [])
 
+  const setWorkspaceMode = useCallback((mode: WorkspaceMode) => {
+    setWorkspaceModeState(mode)
+    saveWorkspaceMode(mode)
+  }, [])
+
   const runPrompt = useCallback(
     async (queryOverride?: string) => {
       const query = (queryOverride || prompt).trim()
@@ -687,6 +703,11 @@ export function useWorkspaceState() {
       }
 
       const pendingId = `pending-${Date.now()}`
+      const runId = crypto.randomUUID()
+      const staged = shouldUseStagedOrchestration(workspaceMode)
+      const engineQuery = wrapQueryForMode(workspaceMode, query)
+      const modeStages = initialThinkingStages(workspaceMode)
+
       setMessages((current) => [
         ...current,
         { id: `user-${Date.now()}`, role: 'user', content: query },
@@ -695,11 +716,47 @@ export function useWorkspaceState() {
           role: 'agent',
           content: '',
           detail: 'pending',
+          stages: modeStages.length ? modeStages : undefined,
         },
       ])
 
+      const stagePoll = staged
+        ? window.setInterval(() => {
+            void apiClient
+              .get<{
+                success: boolean
+                events: Array<{
+                  phase: ThinkingStage['phase']
+                  status: ThinkingStage['status']
+                  label: string
+                  content?: string
+                  error?: string
+                }>
+              }>(`/api/orchestrator/stages?runId=${encodeURIComponent(runId)}`)
+              .then((res) => {
+                if (!res.events?.length) return
+                const byPhase = new Map<ThinkingStage['phase'], ThinkingStage>()
+                for (const event of res.events) {
+                  byPhase.set(event.phase, {
+                    phase: event.phase,
+                    status: event.status,
+                    label: event.label,
+                    content: event.content,
+                    error: event.error,
+                  })
+                }
+                const merged: ThinkingStage[] = modeStages.map((s) => byPhase.get(s.phase) || s)
+                setMessages((current) =>
+                  current.map((m) => (m.id === pendingId ? { ...m, stages: merged } : m))
+                )
+              })
+              .catch(() => undefined)
+          }, 600)
+        : null
+
       try {
         const catalog = getCatalogEntry(activeAgentId)
+        const modeLabel = getWorkspaceModeDefinition(workspaceMode).label
         const response = await apiClient.post<{
           success: boolean
           result: {
@@ -708,14 +765,20 @@ export function useWorkspaceState() {
             agentId: string
             answer: string
             context: { totalTokens: number; files: string[] }
+            stages?: ThinkingStage[]
           }
         }>('/api/orchestrator/run', {
-          query,
+          query: engineQuery,
           agentId: activeAgentId,
           provider: catalog?.providerLabel || activeAgentId,
           tokenBudget: 8000,
           sessionId: activeSession,
+          staged,
+          runId: staged ? runId : undefined,
+          mode: workspaceMode,
         })
+
+        if (stagePoll) window.clearInterval(stagePoll)
 
         setSessionId(response.result.sessionId)
         setActiveSessionId(response.result.sessionId)
@@ -732,7 +795,7 @@ export function useWorkspaceState() {
             id: `agent-${response.result.sessionId}`,
             role: 'agent',
             content: response.result.answer,
-            detail: `${response.result.provider} · ${response.result.context.totalTokens} tokens · ${response.result.context.files.length} files`,
+            detail: `${modeLabel} · ${response.result.provider} · ${response.result.context.totalTokens} tokens · ${response.result.context.files.length} files`,
           },
         ])
         if (activeProjectId) {
@@ -743,6 +806,7 @@ export function useWorkspaceState() {
         await loadAgentSessions(activeAgentId)
         setApiOnline(true)
       } catch (err) {
+        if (stagePoll) window.clearInterval(stagePoll)
         const e = err as Error & { showUpgradeModal?: boolean }
         if (e.showUpgradeModal) {
           setTokenCapMessage(e.message)
@@ -767,6 +831,7 @@ export function useWorkspaceState() {
       refreshWorkspaceData,
       registeredAgents,
       sessionId,
+      workspaceMode,
     ]
   )
 
@@ -853,6 +918,8 @@ export function useWorkspaceState() {
     messages,
     prompt,
     setPrompt,
+    workspaceMode,
+    setWorkspaceMode,
     isRunning,
     runPrompt,
     runQuickCommand,
