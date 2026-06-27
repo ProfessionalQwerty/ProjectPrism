@@ -100,9 +100,10 @@ export function TermsPage({ onBack }: TermsPageProps) {
           <section>
             <h2 className="mb-3 text-xl font-semibold text-neutral-900">7. Rate limits &amp; fair use</h2>
             <p>
-              The Service enforces per-IP and per-account rate limits to protect availability. Without telemetry opt-in,
-              compute is limited to 600,000 tokens per 5-hour window. We may throttle, suspend, or terminate accounts that
-              abuse the Service.
+              The Service enforces per-IP and per-account rate limits to protect availability. Without joining the PRISM
+              Intelligence Engine, compute runs on the free tier — a modest hourly and 5-hour allowance plus a short delay
+              before each run; opting in unlocks unlimited, full-speed compute. We may throttle, suspend, or terminate
+              accounts that abuse the Service.
             </p>
           </section>
 

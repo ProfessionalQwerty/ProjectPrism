@@ -41,8 +41,10 @@ export function WorldModelConsentModal({ onClose }: WorldModelConsentModalProps)
             </h2>
             <p className="mt-1 text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-400">
               PRISM is building a world model of how AI agents work in real software environments — a
-              training ground for the next generation of autonomous coding and DevOps agents. You can
-              contribute anonymized signals from your sessions. It’s entirely optional and off by default.
+              training ground for the next generation of autonomous coding and DevOps agents. Contribute
+              anonymized signals from your sessions and you unlock <strong>unlimited, full-speed compute</strong>.
+              Stay off and you’re on the free tier (smaller limits, a little slower). It’s entirely optional and
+              off by default.
             </p>
           </div>
           <button

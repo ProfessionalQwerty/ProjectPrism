@@ -204,9 +204,10 @@ export function PrivacyPolicyPage({ onBack }: PrivacyPolicyPageProps) {
             </div>
 
             <p className="mt-4">
-              If you opt out, compute usage is rate-limited to 600,000 tokens per 5-hour window (with a soft prompt at
-              100,000 tokens per hour). Opting in removes this cap. You can withdraw consent at any time in
-              Connections; collection stops immediately.
+              The Intelligence Engine is also what powers the full-speed &quot;pro&quot; experience. If you opt out, you
+              stay on the free tier: a modest hourly and 5-hour compute allowance and a deliberate short delay before
+              each run. Opting in removes the caps and the delay. You can withdraw consent at any time in Connections;
+              collection stops immediately.
             </p>
 
             <h3 className="mb-2 mt-4 font-semibold text-neutral-800">Sample record (exactly what is sent)</h3>

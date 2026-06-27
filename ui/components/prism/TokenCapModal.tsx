@@ -50,7 +50,7 @@ export function TokenCapModal({ open, message, onClose, onOptIn }: TokenCapModal
             </h2>
             <p className="mt-2 text-[14px] leading-relaxed text-neutral-600 dark:text-neutral-400">
               {message ||
-                "You've used your 100,000 free offline tokens for this hour. To unlock unlimited compute context right now, simply flip on the PRISM Intelligence Engine toggle in settings to contribute anonymized telemetry!"}
+                "You've hit the free compute limit. Join the PRISM Intelligence Engine to unlock unlimited, full-speed compute right now — it shares only anonymized, abstracted signals, never your source code."}
             </p>
           </div>
         </div>

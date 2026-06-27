@@ -305,7 +305,9 @@ export function ConnectionsPanel({ apiOnline, connections, canManageModels = tru
         </h3>
         <p className="text-[12px] leading-relaxed text-neutral-600 dark:text-neutral-400">
           Contribute anonymized, abstracted signals from your sessions to help train a world model of how
-          AI agents work in real software environments. Off by default — your source code never leaves your device.
+          AI agents work in real software environments — and unlock <strong>unlimited, full-speed compute</strong> in
+          return. Off by default; your source code never leaves your device. Staying off keeps you on the free tier
+          (smaller limits, a little slower).
         </p>
 
         <details className="group rounded-md border border-violet-200/60 bg-white/50 p-2 dark:border-violet-900/60 dark:bg-neutral-900/40">
